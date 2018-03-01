@@ -6,6 +6,8 @@ namespace LiteDB
 {
     public partial class LiteEngine
     {
+        public const string COLUMN_ID = "___id";
+
         /// <summary>
         /// Implements insert documents in a collection - returns _id value
         /// </summary>
@@ -40,6 +42,32 @@ namespace LiteDB
                 }
 
                 return count;
+            });
+        }
+
+        public long[] InsertReturnIDs(string collection, IEnumerable<BsonDocument> docs, BsonType autoId = BsonType.ObjectId)
+        {
+            if (collection.IsNullOrWhiteSpace()) throw new ArgumentNullException(nameof(collection));
+            if (docs == null) throw new ArgumentNullException(nameof(docs));
+            
+            return this.Transaction<long[]>(collection, true, (col) =>
+            {
+                var count = 0;
+                IList<long> lsID = new List<long>() { };
+
+                foreach (var doc in docs)
+                {
+                    this.InsertDocument(col, doc, autoId);
+
+                    _trans.CheckPoint();
+
+                    long id = doc[COLUMN_ID];
+                    lsID.Add(id);
+
+                    count++;
+                }
+
+                return lsID.ToArray();
             });
         }
 

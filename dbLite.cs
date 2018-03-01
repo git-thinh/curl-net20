@@ -10,17 +10,18 @@ namespace curl
     interface IDB
     {
         void Init(string db_name);
-        void Populate(IEnumerable<BsonDocument> docs);
+        long[] Populate(IEnumerable<BsonDocument> docs);
         long Count();
         List<BsonDocument> Fetch(int skip, int limit);
+        IEnumerable<BsonDocument> Select(Query _query);
     }
 
     class dbLite : IDB
-    {
+    { 
         string filename = string.Empty;// Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "litedb_paging.db");// Path.Combine(Path.GetTempPath(), "litedb_paging.db");
 
         private LiteEngine _engine = null;
-        private Query _query = Query.EQ("age", 22);
+        private Query _query = Query.EQ(LiteEngine.COLUMN_ID, 22);
 
         public void Init(string db_name)
         {
@@ -37,19 +38,30 @@ namespace curl
             _engine = new LiteEngine(disk);
         }
 
-        public void Populate(IEnumerable<BsonDocument> docs)
+        public long[] Populate(IEnumerable<BsonDocument> docs)
         {
             // create indexes before
-            _engine.EnsureIndex("col", "age");
+            _engine.EnsureIndex("col", LiteEngine.COLUMN_ID);
 
             // bulk data insert
-            _engine.Insert("col", docs);
+            //_engine.Insert("col", docs);
+            long[] rs = _engine.InsertReturnIDs("col", docs);
+            return rs;
         }
 
         /// <summary>
         /// Count result but reading all documents from database
         /// </summary>
-        public long Count() => _engine.Find("col", _query).Count();
+        //public long Count() => _engine.Find("col", _query).Count();
+        public long Count()
+        {
+            return _engine.Count("col");
+        }
+
+        public IEnumerable<BsonDocument> Select(Query _query)
+        {
+            return _engine.Find("col", _query);
+        }
 
         public List<BsonDocument> Fetch(int skip, int limit)
         {
