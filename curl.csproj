@@ -32,11 +32,18 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>DLL\Newtonsoft.Json.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Web" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="app.cs" />
+    <Compile Include="dbLite.cs" />
     <Compile Include="HtmlAgilityPack\crc32.cs" />
     <Compile Include="HtmlAgilityPack\EncodingFoundException.cs" />
     <Compile Include="HtmlAgilityPack\HtmlAttribute.cs" />
@@ -321,10 +328,14 @@
     <Compile Include="LiteDB\Utils\StringScanner.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="rest.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Linq\_demo\" />
     <Folder Include="LiteDB\_demo\" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="DLL\Newtonsoft.Json.dll" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
