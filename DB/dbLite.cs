@@ -10,8 +10,8 @@ namespace curl
     {
         string[] InsertBulk(IEnumerable<BsonDocument> docs);
         long Count();
-        IEnumerable<BsonDocument> Fetch(int skip, int limit);
-        IEnumerable<BsonDocument> Select(Query _query);
+        IEnumerable<BsonDocument> Fetch(long skip, long limit);
+        BsonDocument FindById(string _id);
         bool isOpen();
         bool Close();
         bool Delete(string _id);
@@ -88,16 +88,17 @@ namespace curl
             return _engine.Count(_LITEDB_CONST.COLLECTION_NAME);
         }
 
-        public IEnumerable<BsonDocument> Select(Query _query)
+        public BsonDocument FindById(string _id)
         {
-            if (!Opened) new List<BsonDocument>() { };
-            var result = _engine.Find(_LITEDB_CONST.COLLECTION_NAME, _query);
+            if (!Opened) return null;
+            var result = _engine.FindById(_LITEDB_CONST.COLLECTION_NAME, new BsonValue(new ObjectId(_id)));
             return result;
         }
 
-        public IEnumerable<BsonDocument> Fetch(int skip, int limit)
+        public IEnumerable<BsonDocument> Fetch(long skip, long limit)
         {
-            if (!Opened) new List<BsonDocument>() { };
+            long k = Count();
+            if (!Opened || skip >= k) return new List<BsonDocument>() { };
 
             //Query _query = Query.EQ(LiteEngine.COLUMN_ID, 22);
             //var result = _engine.FindSort(

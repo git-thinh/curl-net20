@@ -2500,7 +2500,14 @@ namespace System.Linq
             return CreateSkipIterator(source, count);
         }
 
-        static IEnumerable<TSource> CreateSkipIterator<TSource>(IEnumerable<TSource> source, int count)
+        public static IEnumerable<TSource> Skip<TSource>(this IEnumerable<TSource> source, long count)
+        {
+            Check.Source(source);
+
+            return CreateSkipIterator(source, count);
+        }
+
+        static IEnumerable<TSource> CreateSkipIterator<TSource>(IEnumerable<TSource> source, long count)
         {
             var enumerator = source.GetEnumerator();
             try
@@ -2519,6 +2526,24 @@ namespace System.Linq
             }
         }
 
+        static IEnumerable<TSource> CreateSkipIterator<TSource>(IEnumerable<TSource> source, int count)
+        {
+            var enumerator = source.GetEnumerator();
+            try
+            {
+                while (count-- > 0)
+                    if (!enumerator.MoveNext())
+                        yield break;
+
+                while (enumerator.MoveNext())
+                    yield return enumerator.Current;
+
+            }
+            finally
+            {
+                enumerator.Dispose();
+            }
+        }
         #endregion
 
         #region SkipWhile
@@ -2821,6 +2846,27 @@ namespace System.Linq
         #endregion
 
         #region Take
+        public static IEnumerable<TSource> Take<TSource>(this IEnumerable<TSource> source, long count)
+        {
+            Check.Source(source);
+
+            return CreateTakeIterator(source, count);
+        }
+
+        static IEnumerable<TSource> CreateTakeIterator<TSource>(IEnumerable<TSource> source, long count)
+        {
+            if (count <= 0)
+                yield break;
+
+            int counter = 0;
+            foreach (TSource element in source)
+            {
+                yield return element;
+
+                if (++counter == count)
+                    yield break;
+            }
+        }
 
         public static IEnumerable<TSource> Take<TSource>(this IEnumerable<TSource> source, int count)
         {
