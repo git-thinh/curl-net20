@@ -27,7 +27,18 @@ namespace curl
         const string ___output = "[$$$]";
         private static IDictionary<string, IDB> dicDB = new Dictionary<string, IDB>() { };
 
-        public static void Load() { }
+        public static void Load()
+        {
+            string path = AppDomain.CurrentDomain.BaseDirectory;
+            string[] files = Directory.GetFiles(path, "*.db").Select(x => Path.GetFileName(x)).ToArray();
+            foreach (string m in files)
+            {
+                string mi = m.Substring(0, m.Length - 3).ToLower();
+                IDB db = new dbLite(mi, dbMode.OPEN);
+                if (db.isOpen())
+                    dicDB.Add(mi, db);
+            }
+        }
 
         public static string Query(string paraJson)
         {
@@ -58,8 +69,8 @@ namespace curl
                     case "getbyid":
                         rs = _getbyid(m);
                         break;
-                    case "page":
-                        rs = _page(m);
+                    case "fetch":
+                        rs = _fetch(m);
                         break;
                     case "count":
                         rs = _count(m.model);
@@ -77,18 +88,19 @@ namespace curl
             return bi.ToString();
         }
 
-
         // { "model":"test", "action":"create", "indexes":"key", "data":[{"key":"value1", "key2":"tiếng việt"}] }
         private static string _create(message m)
         {
             string json = "{}";
             string indexes = GetValue(m.jobject, "indexes");
 
-            IDB db = new dbLite();
-            db.Init(m.model);
-            dicDB.Add(m.model, db);
+            IDB db = new dbLite(m.model, dbMode.CREATE_AND_OPEN);
+            if (db.isOpen()) dicDB.Add(m.model, db);
 
-            json = _insert(new message() { action = "insert", model = m.model, input = m.input });
+            if (!string.IsNullOrEmpty(m.input))
+                json = _insert(new message() { action = "insert", model = m.model, input = m.input });
+            else
+                json = @"{""ok"":true,""total"":0,""output"":""Create database " + m.model + @" successfully.""}";
 
             return json;
         }
@@ -104,15 +116,16 @@ namespace curl
                 IDB db = null;
                 if (dicDB.TryGetValue(m.model, out db) && db != null)
                 {
-                    long[] IDs = db.Populate(convertBsonDocument(ips, true));
-                    json = @"{""count"":""" + db.Count() + @""", ""ids"":" + JsonConvert.SerializeObject(IDs) + @"}";
+                    string[] IDs = db.Populate(convertBsonDocument(ips, true));
+                    json = @"{""ok"":true,""total"":" + db.Count().ToString() + @",""count"":" + IDs.Length.ToString() + @",""ids"":" + JsonConvert.SerializeObject(IDs) + @"}";
                 }
             }
 
             return json;
         }
 
-        private static string _page(message m)
+        //http://127.0.0.1:8888/?model=test&action=fetch
+        private static string _fetch(message m)
         {
             string json = "{}";
             string skip = GetValue(m.jobject, "skip");
@@ -121,25 +134,16 @@ namespace curl
             int _skip = 0;
             int _limit = 0;
 
-            if (int.TryParse(skip, out _skip) && int.TryParse(limit, out _limit) && _skip > 0 && _limit > 0)
+            if (int.TryParse(skip, out _skip) && int.TryParse(limit, out _limit) && _skip >= 0 && _limit > 0)
             {
                 IDB db = null;
                 if (dicDB.TryGetValue(m.model, out db) && db != null)
-                {
-                    var result = db.Fetch(_skip, _limit);
-                    json = @"{""count"":" + result.Count.ToString() + @", ""count"":""" + JsonConvert.SerializeObject(result) + @"""}";
+                { 
+                    var result = db.Fetch(_skip, _limit).Select(x => x.toJson).ToArray(); ;
+                    if (result.Length > 0)
+                    json = @"{""ok"":true,""total"":" + db.Count().ToString() + @",""count"":" + result.Length.ToString() + @",""items"":[" + string.Join(",", result) + @"]}";
                 }
             }
-
-            //var result = test.Fetch(skip, limit); 
-
-            //foreach (var doc in result)
-            //{
-            //    Console.WriteLine(
-            //        doc["_id"].AsString.PadRight(6) + " - " +
-            //        doc["name"].AsString.PadRight(30) + "  -> " +
-            //        doc["age"].AsInt32);
-            //}
 
             return json;
         }
@@ -163,19 +167,20 @@ namespace curl
             return json;
         }
 
+        //http://127.0.0.1:8888?model=test&action=getbyid&___id=20180302091035965
         private static string _getbyid(message m)
         {
             string json = "{}";
-            string ___id = GetValue(m.jobject, "___id");
+            string ___id = GetValue(m.jobject, _LITEDB_CONST.FIELD_ID);
 
-            int id = -1;
-            if (int.TryParse(___id, out id) && id > 0)
+            long id = -1;
+            if (long.TryParse(___id, out id) && id > 0)
             {
                 IDB db = null;
                 if (dicDB.TryGetValue(m.model, out db) && db != null)
                 {
-                    var result = db.Select(LiteDB.Query.EQ(LiteEngine.COLUMN_ID, id));
-                    json = @"{""count"":" + result.Count().ToString() + @", ""count"":""" + JsonConvert.SerializeObject(result) + @"""}";
+                    var result = db.Select(LiteDB.Query.EQ(_LITEDB_CONST.FIELD_ID, id));
+                    json = @"{""ok"":true,""count"":" + result.Count().ToString() + @", ""items"":""" + JsonConvert.SerializeObject(result) + @"""}";
                 }
             }
 
@@ -184,11 +189,11 @@ namespace curl
 
         private static string _count(string model)
         {
-            string json = @"{""count"":""-1""}";
+            string json = @"{""ok"":false,""count"":""-1""}";
             IDB db = null;
             if (dicDB.TryGetValue(model, out db) && db != null)
             {
-                json = @"{""count"":""" + db.Count() + @"""}";
+                json = @"{""ok"":true,""count"":""" + db.Count() + @"""}";
             }
             return json;
         }
@@ -200,7 +205,7 @@ namespace curl
                 return it.Select(x => new message()
                 {
                     jobject = x,
-                    model = GetValue(x, "model"),
+                    model = GetValue(x, "model").ToLower(),
                     action = GetValue(x, "action"),
                     input = GetValue(x, "data", true),
                     output = ___output
@@ -224,7 +229,7 @@ namespace curl
             return val;
         }
 
-        private static IEnumerable<BsonDocument> convertBsonDocument(JObject[] a, bool generalID = false)
+        private static IEnumerable<BsonDocument> convertBsonDocument(JObject[] a, bool update_DateTime_Changed = false)
         {
             IList<BsonDocument> ls = new List<BsonDocument>() { };
 
@@ -235,8 +240,6 @@ namespace curl
                     .Select(x => new { name = x.Name, value = x.Value.ToString(), _type = x.Value.Type })
                     .ToArray();
                 var doc = new BsonDocument();
-                if (generalID)
-                    doc[LiteEngine.COLUMN_ID] = Convert.ToInt64(DateTime.Now.ToString("yyyyMMddHHmmssfff"));
 
                 for (int j = 0; j < ps.Length; j++)
                 {
@@ -264,6 +267,12 @@ namespace curl
                             doc[ps[j].name] = 0;
                             break;
                     }
+                }
+
+                if (update_DateTime_Changed)
+                {
+                    doc[_LITEDB_CONST.FIELD_DATE_CREATE] = Convert.ToInt32(DateTime.Now.ToString("yyyyMMdd"));
+                    doc[_LITEDB_CONST.FIELD_TIME_CREATE] = Convert.ToInt32(DateTime.Now.ToString("HHmmss"));
                 }
 
                 // yield return doc;

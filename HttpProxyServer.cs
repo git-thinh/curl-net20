@@ -1,4 +1,7 @@
 ﻿using HtmlAgilityPack;
+using LiteDB;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -24,6 +27,7 @@ namespace curl
             switch (Request.HttpMethod)
             {
                 case "POST":
+                    #region
                     htm = "{}";
                     StreamReader stream = new StreamReader(Request.InputStream);
                     string data = stream.ReadToEnd();
@@ -37,17 +41,50 @@ namespace curl
                     OutputStream.Write(bOutput, 0, bOutput.Length);
                     OutputStream.Close();
                     break;
+                #endregion
                 case "GET":
-                    #region 
-
                     string _type = "text/html; charset=utf-8";
                     string _action = Request.QueryString["action"];
+                    string _input = string.Empty, _id = string.Empty, _model = string.Empty;
+                    int _skip = 0, _limit = 10;
+                    JObject _jobject;
 
-                    switch (_action) {
+                    #region 
+
+                    switch (_action)
+                    {
+                        case "fetch":
+                            _type = "application/json; charset=utf-8";
+                            _model = Request.QueryString["model"];
+
+                            string skip = Request.QueryString["skip"];
+                            string limit = Request.QueryString["limit"];
+
+                            int.TryParse(skip, out _skip);
+                            int.TryParse(limit, out _limit);
+
+                            if (_skip < 0) _skip = 0;
+                            if (_limit <= 0) _limit = 10;
+
+                            _input = JsonConvert.SerializeObject(new { skip = _skip, limit = _limit });
+                            _jobject = JsonConvert.DeserializeObject<JObject>(_input);
+                            htm = rest.QueryMessage(new message[] { new message() { action = _action, model = _model, input = _input, jobject = _jobject } });
+
+                            break;
                         case "getbyid":
                             _type = "application/json; charset=utf-8";
-                            string _id = Request.QueryString["___id"];
-                            htm = rest.QueryMessage(new message[] { new message() { action = _action, input = @"{""__id"":" + _id + "}" } });
+                            _id = Request.QueryString[_LITEDB_CONST.FIELD_ID];
+                            _model = Request.QueryString["model"];
+                            if (string.IsNullOrEmpty(_id) || string.IsNullOrEmpty(_model))
+                            {
+                                htm = @"{""ok"":false, ""output"":""The fields " + _LITEDB_CONST.FIELD_ID + @" or model be not NULL""}";
+                            }
+                            else
+                            {
+                                _input = @"{""" + _LITEDB_CONST.FIELD_ID + @""":" + _id + "}";
+                                _jobject = JsonConvert.DeserializeObject<JObject>(_input);
+                                htm = rest.QueryMessage(new message[] { new message() { action = _action, model = _model, input = _input, jobject = _jobject } });
+                            }
                             break;
                         default:
                             #region
@@ -123,7 +160,7 @@ Host: " + uri.Host + @"
                     bOutput = System.Text.Encoding.UTF8.GetBytes(htm);
                     Response.ContentType = _type;
                     Response.ContentLength64 = bOutput.Length;
-                    
+
                     OutputStream.Write(bOutput, 0, bOutput.Length);
                     OutputStream.Close();
 

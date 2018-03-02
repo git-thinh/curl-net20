@@ -326,6 +326,7 @@
     <Compile Include="LiteDB\Utils\MimeTypeConverter.cs" />
     <Compile Include="LiteDB\Utils\StorageUnitHelper.cs" />
     <Compile Include="LiteDB\Utils\StringScanner.cs" />
+    <Compile Include="LiteDB\_LITEDB_CONST.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="rest.cs" />

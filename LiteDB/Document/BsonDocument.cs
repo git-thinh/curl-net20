@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace LiteDB
 {
@@ -23,6 +24,28 @@ namespace LiteDB
             get
             {
                 return (Dictionary<string, BsonValue>)base.RawValue;
+            }
+        }
+        
+        public new string toJson
+        {
+            get
+            {
+                string tm = string.Empty;
+                StringBuilder bi = new StringBuilder("{");
+                int i = 0, max = this.Count - 1;
+                foreach (var kv in this.RawValue)
+                {
+                    if (kv.Value.Type == BsonType.String || kv.Value.Type == BsonType.ObjectId)
+                        tm = string.Format(@"""{0}"":""{1}""", kv.Key, kv.Value.RawValue);
+                    else
+                        tm = string.Format(@"""{0}"":{1}", kv.Key, kv.Value.RawValue);
+                    bi.Append(tm);
+                    if (i != max) bi.Append(",");
+                    i++;
+                }
+                bi.Append("}");
+                return bi.ToString();
             }
         }
 
@@ -280,7 +303,7 @@ namespace LiteDB
             var myDict = this.RawValue;
             var otherDict = doc.RawValue;
 
-            foreach(var key in myDict.Keys)
+            foreach (var key in myDict.Keys)
             {
                 otherDict[key] = myDict[key];
             }

@@ -9,43 +9,78 @@ namespace curl
 {
     interface IDB
     {
-        void Init(string db_name);
-        long[] Populate(IEnumerable<BsonDocument> docs);
+        string[] Populate(IEnumerable<BsonDocument> docs);
         long Count();
-        List<BsonDocument> Fetch(int skip, int limit);
+        IEnumerable<BsonDocument> Fetch(int skip, int limit);
         IEnumerable<BsonDocument> Select(Query _query);
+        bool isOpen();
     }
 
-    class dbLite : IDB
-    { 
-        string filename = string.Empty;// Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "litedb_paging.db");// Path.Combine(Path.GetTempPath(), "litedb_paging.db");
+    public enum dbMode
+    {
+        OPEN = 1,
+        CREATE_AND_OPEN = 2
+    }
+
+    public class dbLite : IDB
+    {
+        public string Model { set; get; }
+        public bool Opened { set; get; } = false;
 
         private LiteEngine _engine = null;
-        private Query _query = Query.EQ(LiteEngine.COLUMN_ID, 22);
 
-        public void Init(string db_name)
+        //string filename = string.Empty;// Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "litedb_paging.db");// Path.Combine(Path.GetTempPath(), "litedb_paging.db");
+        //private Query _query = Query.EQ(LiteEngine.COLUMN_ID, 22);
+        public bool isOpen() { return Opened; }
+
+        public dbLite(string model_name, dbMode mode_type)
         {
-            filename = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, db_name + ".db");// Path.Combine(Path.GetTempPath(), "litedb_paging.db");
-            File.Delete(filename);
+            Model = model_name;
+            string filename = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, model_name + ".db"); // Path.Combine(Path.GetTempPath(), "litedb_paging.db");
 
-            var disk = new FileDiskService(filename, new LiteDB.FileOptions
+            switch (mode_type)
             {
-                FileMode = LiteDB.FileMode.Exclusive,
-                Journal = false
-            });
+                case dbMode.OPEN:
+                    if (!File.Exists(filename)) return;
 
-            //_engine = new LiteEngine(disk, cacheSize: 50000);
-            _engine = new LiteEngine(disk);
+                    var disk2 = new FileDiskService(filename, new LiteDB.FileOptions
+                    {
+                        FileMode = LiteDB.FileMode.Exclusive,
+                        Journal = false
+                    });
+
+                    //_engine = new LiteEngine(disk, cacheSize: 50000);
+                    _engine = new LiteEngine(disk2);
+
+                    Opened = true;
+                    break;
+                case dbMode.CREATE_AND_OPEN:                    
+                    //File.Delete(filename);
+
+                    var disk = new FileDiskService(filename, new LiteDB.FileOptions
+                    {
+                        FileMode = LiteDB.FileMode.Exclusive,
+                        Journal = false
+                    });
+
+                    //_engine = new LiteEngine(disk, cacheSize: 50000);
+                    _engine = new LiteEngine(disk);
+
+                    Opened = true;
+                    break;
+            }
         }
 
-        public long[] Populate(IEnumerable<BsonDocument> docs)
+        public string[] Populate(IEnumerable<BsonDocument> docs)
         {
+            if (!Opened) return new string[] { };
+
             // create indexes before
-            _engine.EnsureIndex("col", LiteEngine.COLUMN_ID);
+            _engine.EnsureIndex(_LITEDB_CONST.COLLECTION_NAME, _LITEDB_CONST.FIELD_DATE_CREATE);
 
             // bulk data insert
             //_engine.Insert("col", docs);
-            long[] rs = _engine.InsertReturnIDs("col", docs);
+            string[] rs = _engine.InsertReturnIDs(_LITEDB_CONST.COLLECTION_NAME, docs);
             return rs;
         }
 
@@ -55,28 +90,40 @@ namespace curl
         //public long Count() => _engine.Find("col", _query).Count();
         public long Count()
         {
-            return _engine.Count("col");
+            if (!Opened) return 0;
+
+            return _engine.Count(_LITEDB_CONST.COLLECTION_NAME);
         }
 
         public IEnumerable<BsonDocument> Select(Query _query)
         {
-            return _engine.Find("col", _query);
+            if (!Opened) new List<BsonDocument>() { };
+
+            var result = _engine.Find(_LITEDB_CONST.COLLECTION_NAME, _query);
+            return result;
         }
 
-        public List<BsonDocument> Fetch(int skip, int limit)
+        public IEnumerable<BsonDocument> Fetch(int skip, int limit)
         {
-            var result = _engine.FindSort(
-                "col",
-                _query,
-                "$.name",
-                Query.Ascending,
-                skip,
-                limit);
+            if (!Opened) new List<BsonDocument>() { };
 
-            //var result = _engine.Find("col", _query)
-            //    .OrderBy(x => x["name"].AsString)
-            //    .Skip(skip)
-            //    .Take(limit);
+            //Query _query = Query.EQ(LiteEngine.COLUMN_ID, 22);
+            //var result = _engine.FindSort(
+            //    "col",
+            //    _query,
+            //    "$.name",
+            //    Query.Ascending,
+            //    skip,
+            //    limit);
+
+            ////var result = _engine.Find("col", _query)
+            ////    .OrderBy(x => x["name"].AsString)
+            ////    .Skip(skip)
+            ////    .Take(limit);
+
+            var result = _engine.Find("col", Query.Not(_LITEDB_CONST.FIELD_ID, 0))
+                .Skip(skip)
+                .Take(limit);
 
             return result;
         }
