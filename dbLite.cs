@@ -28,15 +28,14 @@ namespace curl
         public bool Opened { set; get; } = false;
 
         private LiteEngine _engine = null;
-
-        //string filename = string.Empty;// Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "litedb_paging.db");// Path.Combine(Path.GetTempPath(), "litedb_paging.db");
-        //private Query _query = Query.EQ(LiteEngine.COLUMN_ID, 22);
+        
         public bool isOpen() { return Opened; }
 
         public dbLite(string model_name, dbMode mode_type)
         {
             Model = model_name;
-            string filename = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, model_name + ".db"); // Path.Combine(Path.GetTempPath(), "litedb_paging.db");
+            string filename = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, model_name + ".db"); // Path.Combine(Path.GetTempPath(), "litedb_paging.db");                  
+            File.Delete(filename);
 
             switch (mode_type)
             {
@@ -54,8 +53,7 @@ namespace curl
 
                     Opened = true;
                     break;
-                case dbMode.CREATE_AND_OPEN:                    
-                    //File.Delete(filename);
+                case dbMode.CREATE_AND_OPEN:  
 
                     var disk = new FileDiskService(filename, new LiteDB.FileOptions
                     {
@@ -76,10 +74,9 @@ namespace curl
             if (!Opened) return new string[] { };
 
             // create indexes before
-            _engine.EnsureIndex(_LITEDB_CONST.COLLECTION_NAME, _LITEDB_CONST.FIELD_DATE_CREATE);
+            //_engine.EnsureIndex(_LITEDB_CONST.COLLECTION_NAME, _LITEDB_CONST.FIELD_DATE_CREATE);
 
             // bulk data insert
-            //_engine.Insert("col", docs);
             string[] rs = _engine.InsertReturnIDs(_LITEDB_CONST.COLLECTION_NAME, docs);
             return rs;
         }
@@ -91,14 +88,12 @@ namespace curl
         public long Count()
         {
             if (!Opened) return 0;
-
             return _engine.Count(_LITEDB_CONST.COLLECTION_NAME);
         }
 
         public IEnumerable<BsonDocument> Select(Query _query)
         {
             if (!Opened) new List<BsonDocument>() { };
-
             var result = _engine.Find(_LITEDB_CONST.COLLECTION_NAME, _query);
             return result;
         }

@@ -138,10 +138,10 @@ namespace curl
             {
                 IDB db = null;
                 if (dicDB.TryGetValue(m.model, out db) && db != null)
-                { 
+                {
                     var result = db.Fetch(_skip, _limit).Select(x => x.toJson).ToArray(); ;
                     if (result.Length > 0)
-                    json = @"{""ok"":true,""total"":" + db.Count().ToString() + @",""count"":" + result.Length.ToString() + @",""items"":[" + string.Join(",", result) + @"]}";
+                        json = @"{""ok"":true,""total"":" + db.Count().ToString() + @",""count"":" + result.Length.ToString() + @",""items"":[" + string.Join(",", result) + @"]}";
                 }
             }
 
@@ -231,11 +231,11 @@ namespace curl
 
         private static IEnumerable<BsonDocument> convertBsonDocument(JObject[] a, bool update_DateTime_Changed = false)
         {
-            IList<BsonDocument> ls = new List<BsonDocument>() { };
+            //IList<BsonDocument> ls = new List<BsonDocument>() { };
 
             for (int i = 0; i < a.Length; i++)
             {
-                var ps = a[0]
+                var ps = a[i]
                     .Properties()
                     .Select(x => new { name = x.Name, value = x.Value.ToString(), _type = x.Value.Type })
                     .ToArray();
@@ -275,11 +275,11 @@ namespace curl
                     doc[_LITEDB_CONST.FIELD_TIME_CREATE] = Convert.ToInt32(DateTime.Now.ToString("HHmmss"));
                 }
 
-                // yield return doc;
-                ls.Add(doc);
+                yield return doc;
+                //ls.Add(doc);
             }
 
-            return ls;
+            //return ls;
         }
 
 
