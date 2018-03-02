@@ -36,7 +36,7 @@ namespace curl
         {
             Model = model_name;
             string filename = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, model_name + ".db"); // Path.Combine(Path.GetTempPath(), "litedb_paging.db");                  
-            File.Delete(filename);
+            //File.Delete(filename);
 
             switch (mode_type)
             {
