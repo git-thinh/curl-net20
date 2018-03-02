@@ -5,6 +5,8 @@ using System.Reflection;
 using System.IO;
 using System.Net.Sockets;
 using System.Net;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace curl
 {
@@ -12,15 +14,15 @@ namespace curl
     {
         static void Main(string[] args)
         {
-            App.Start();
+            app.Start();
         }
     }
 
     [PermissionSet(SecurityAction.LinkDemand, Name = "Everything"), PermissionSet(SecurityAction.InheritanceDemand, Name = "FullTrust")]
-    class App
+    public class app
     {
         private static int m_Port = 0;
-        static App()
+        static app()
         {
             AppDomain.CurrentDomain.AssemblyResolve += (se, ev) =>
             {
@@ -28,7 +30,7 @@ namespace curl
                 string comName = ev.Name.Split(',')[0];
                 string resourceName = @"DLL\" + comName + ".dll";
                 var assembly = Assembly.GetExecutingAssembly();
-                resourceName = typeof(App).Namespace + "." + resourceName.Replace(" ", "_").Replace("\\", ".").Replace("/", ".");
+                resourceName = typeof(app).Namespace + "." + resourceName.Replace(" ", "_").Replace("\\", ".").Replace("/", ".");
                 using (Stream stream = assembly.GetManifestResourceStream(resourceName))
                 {
                     if (stream != null)
@@ -48,6 +50,7 @@ namespace curl
             };
         }
 
+
         private static HttpServer Server = null;
         public static void Start()
         {
@@ -59,7 +62,8 @@ namespace curl
             string uri = string.Format("http://127.0.0.1:{0}/", m_Port);
             Console.Title = m_Port.ToString();
 
-            rest.Load();
+            dbi.Init();
+
             //http://127.0.0.1:8888/http_-_genk.vn/ai-nay-da-danh-bai-20-luat-su-hang-dau-nuoc-my-trong-linh-vuc-ma-ho-gioi-nhat-20180227012111793.chn?_format=text
             //HttpServer Server = null;
             Server = new HttpProxyServer();
@@ -72,6 +76,7 @@ namespace curl
         public static void Stop()
         {
             Server.Stop();
+            dbi.CloseAll();
         }
     }
 }

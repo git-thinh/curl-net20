@@ -43,6 +43,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="app.cs" />
+    <Compile Include="DB\dbi.cs" />
     <Compile Include="DB\dbLite.cs" />
     <Compile Include="Html\HtmlAgilityPack\crc32.cs" />
     <Compile Include="Html\HtmlAgilityPack\EncodingFoundException.cs" />
@@ -328,7 +329,7 @@
     <Compile Include="DB\LiteDB\Utils\StringScanner.cs" />
     <Compile Include="DB\LiteDB\_LITEDB_CONST.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Http\rest.cs" />
+    <Compile Include="Http\Rest.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="DB\LiteDB\_demo\" />
