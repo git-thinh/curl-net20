@@ -45,7 +45,7 @@ namespace curl
                 case "GET":
                     string _type = "text/html; charset=utf-8";
                     string _action = Request.QueryString["action"];
-                    string _input = string.Empty, _id = string.Empty, _model = string.Empty;
+                    string _input = string.Empty, _file = string.Empty, _id = string.Empty, _model = string.Empty;
                     int _skip = 0, _limit = 10;
                     JObject _jobject;
 
@@ -53,7 +53,88 @@ namespace curl
 
                     switch (_action)
                     {
+                        case "restore-file":
+                            #region
+                            _type = "application/json; charset=utf-8";
+                            _model = Request.QueryString["model"];
+                            _file = Request.QueryString["file"];
+
+                            htm = JsonConvert.SerializeObject(new { ok = false, output = "The file is invalid" });
+                            if (!string.IsNullOrEmpty(_file))
+                            {
+                                _file = HttpUtility.UrlDecode(_file);
+                                if (File.Exists(_file))
+                                {
+
+                                    _input = JsonConvert.SerializeObject(new { file = _file });
+                                    _jobject = JsonConvert.DeserializeObject<JObject>(_input);
+                                    htm = rest.Query(new message[] { new message() { action = _action, model = _model, input = _input, jobject = _jobject } });
+                                }
+                            }
+                            break;
+                            #endregion
+                        case "restore-uri":
+                            #region
+                            _type = "application/json; charset=utf-8";
+                            _model = Request.QueryString["model"];
+                            _file = Request.QueryString["file"];
+
+                            htm = JsonConvert.SerializeObject(new { ok = false, output = "The file is invalid" });
+                            if (!string.IsNullOrEmpty(_file))
+                            {
+                                _file = HttpUtility.UrlDecode(_file);
+                                if (File.Exists(_file))
+                                {
+
+                                    _input = JsonConvert.SerializeObject(new { file = _file });
+                                    _jobject = JsonConvert.DeserializeObject<JObject>(_input);
+                                    htm = rest.Query(new message[] { new message() { action = _action, model = _model, input = _input, jobject = _jobject } });
+                                }
+                            }
+                            break;
+                            #endregion
+                        case "import-file":
+                            #region
+                            _type = "application/json; charset=utf-8";
+                            _model = Request.QueryString["model"];
+                            _file = Request.QueryString["file"];
+
+                            htm = JsonConvert.SerializeObject(new { ok = false, output = "The file is invalid" });
+                            if (!string.IsNullOrEmpty(_file))
+                            {
+                                _file = HttpUtility.UrlDecode(_file);
+                                if (File.Exists(_file))
+                                {
+
+                                    _input = JsonConvert.SerializeObject(new { file = _file });
+                                    _jobject = JsonConvert.DeserializeObject<JObject>(_input);
+                                    htm = rest.Query(new message[] { new message() { action = _action, model = _model, input = _input, jobject = _jobject } });
+                                }
+                            }
+                            break;
+                            #endregion
+                        case "import-uri":
+                            #region
+                            _type = "application/json; charset=utf-8";
+                            _model = Request.QueryString["model"];
+                            _file = Request.QueryString["file"];
+
+                            htm = JsonConvert.SerializeObject(new { ok = false, output = "The file is invalid" });
+                            if (!string.IsNullOrEmpty(_file))
+                            {
+                                _file = HttpUtility.UrlDecode(_file);
+                                if (File.Exists(_file))
+                                {
+
+                                    _input = JsonConvert.SerializeObject(new { file = _file });
+                                    _jobject = JsonConvert.DeserializeObject<JObject>(_input);
+                                    htm = rest.Query(new message[] { new message() { action = _action, model = _model, input = _input, jobject = _jobject } });
+                                }
+                            }
+                            break;
+                            #endregion
                         case "fetch":
+                            #region
                             _type = "application/json; charset=utf-8";
                             _model = Request.QueryString["model"];
 
@@ -68,10 +149,11 @@ namespace curl
 
                             _input = JsonConvert.SerializeObject(new { skip = _skip, limit = _limit });
                             _jobject = JsonConvert.DeserializeObject<JObject>(_input);
-                            htm = rest.QueryMessage(new message[] { new message() { action = _action, model = _model, input = _input, jobject = _jobject } });
-
+                            htm = rest.Query(new message[] { new message() { action = _action, model = _model, input = _input, jobject = _jobject } });
                             break;
+                        #endregion
                         case "getbyid":
+                            #region
                             _type = "application/json; charset=utf-8";
                             _id = Request.QueryString[_LITEDB_CONST.FIELD_ID];
                             _model = Request.QueryString["model"];
@@ -83,9 +165,10 @@ namespace curl
                             {
                                 _input = @"{""" + _LITEDB_CONST.FIELD_ID + @""":" + _id + "}";
                                 _jobject = JsonConvert.DeserializeObject<JObject>(_input);
-                                htm = rest.QueryMessage(new message[] { new message() { action = _action, model = _model, input = _input, jobject = _jobject } });
+                                htm = rest.Query(new message[] { new message() { action = _action, model = _model, input = _input, jobject = _jobject } });
                             }
                             break;
+                        #endregion
                         default:
                             #region
 
@@ -160,10 +243,8 @@ Host: " + uri.Host + @"
                     bOutput = System.Text.Encoding.UTF8.GetBytes(htm);
                     Response.ContentType = _type;
                     Response.ContentLength64 = bOutput.Length;
-
                     OutputStream.Write(bOutput, 0, bOutput.Length);
                     OutputStream.Close();
-
                     break;
                     #endregion
             }

@@ -44,10 +44,10 @@ namespace curl
         {
             Console.WriteLine(paraJson);
             message[] a = convertMessage(paraJson);
-            return QueryMessage(a);
+            return Query(a);
         }
 
-        public static string QueryMessage(message[] a)
+        public static string Query(message[] a)
         {
             StringBuilder bi = new StringBuilder("[");
             for (int i = 0; i < a.Length; i++)
@@ -92,7 +92,7 @@ namespace curl
         private static string _create(message m)
         {
             string json = "{}";
-            string indexes = GetValue(m.jobject, "indexes");
+            string indexes = getValue(m.jobject, "indexes");
 
             IDB db = new dbLite(m.model, dbMode.CREATE_AND_OPEN);
             if (db.isOpen()) dicDB.Add(m.model, db);
@@ -116,7 +116,7 @@ namespace curl
                 IDB db = null;
                 if (dicDB.TryGetValue(m.model, out db) && db != null)
                 {
-                    string[] IDs = db.Populate(convertBsonDocument(ips, true));
+                    string[] IDs = db.InsertBulk(convertBsonDocument(ips, true));
                     json = @"{""ok"":true,""total"":" + db.Count().ToString() + @",""count"":" + IDs.Length.ToString() + @",""ids"":" + JsonConvert.SerializeObject(IDs) + @"}";
                 }
             }
@@ -128,8 +128,8 @@ namespace curl
         private static string _fetch(message m)
         {
             string json = "{}";
-            string skip = GetValue(m.jobject, "skip");
-            string limit = GetValue(m.jobject, "limit");
+            string skip = getValue(m.jobject, "skip");
+            string limit = getValue(m.jobject, "limit");
 
             int _skip = 0;
             int _limit = 0;
@@ -171,7 +171,7 @@ namespace curl
         private static string _getbyid(message m)
         {
             string json = "{}";
-            string ___id = GetValue(m.jobject, _LITEDB_CONST.FIELD_ID);
+            string ___id = getValue(m.jobject, _LITEDB_CONST.FIELD_ID);
 
             long id = -1;
             if (long.TryParse(___id, out id) && id > 0)
@@ -198,6 +198,13 @@ namespace curl
             return json;
         }
 
+        private static string _import_file(message m) {
+            string json = "{}";
+            return json;
+        }
+
+        #region [ FUNCTION ]
+
         private static message[] convertMessage(string paraJson)
         {
             var it = JsonConvert.DeserializeObject<JObject[]>(paraJson);
@@ -205,15 +212,15 @@ namespace curl
                 return it.Select(x => new message()
                 {
                     jobject = x,
-                    model = GetValue(x, "model").ToLower(),
-                    action = GetValue(x, "action"),
-                    input = GetValue(x, "data", true),
+                    model = getValue(x, "model").ToLower(),
+                    action = getValue(x, "action"),
+                    input = getValue(x, "data", true),
                     output = ___output
                 }).ToArray();
             return new message[] { };
         }
 
-        private static string GetValue(JObject it, string name, bool parseJson = false)
+        private static string getValue(JObject it, string name, bool parseJson = false)
         {
             string val = "";
             JProperty pro = it.Properties().Where(i => i.Name == name).SingleOrDefault();
@@ -282,6 +289,6 @@ namespace curl
             //return ls;
         }
 
-
+        #endregion
     }
 }

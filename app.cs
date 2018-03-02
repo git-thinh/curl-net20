@@ -3,12 +3,23 @@ using System.Security.Permissions;
 using System.Threading;
 using System.Reflection;
 using System.IO;
+using System.Net.Sockets;
+using System.Net;
 
 namespace curl
 {
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            App.Start();
+        }
+    }
+
     [PermissionSet(SecurityAction.LinkDemand, Name = "Everything"), PermissionSet(SecurityAction.InheritanceDemand, Name = "FullTrust")]
     class App
     {
+        private static int m_Port = 0;
         static App()
         {
             AppDomain.CurrentDomain.AssemblyResolve += (se, ev) =>
@@ -40,7 +51,13 @@ namespace curl
         private static HttpServer Server = null;
         public static void Start()
         {
-            string uri = "http://127.0.0.1:8888/";
+            TcpListener l = new TcpListener(IPAddress.Loopback, 0);
+            l.Start();
+            m_Port = ((IPEndPoint)l.LocalEndpoint).Port;
+            l.Stop();
+            m_Port = 8888;
+            string uri = string.Format("http://127.0.0.1:{0}/", m_Port);
+            Console.Title = m_Port.ToString();
 
             rest.Load();
             //http://127.0.0.1:8888/http_-_genk.vn/ai-nay-da-danh-bai-20-luat-su-hang-dau-nuoc-my-trong-linh-vuc-ma-ho-gioi-nhat-20180227012111793.chn?_format=text
@@ -48,7 +65,7 @@ namespace curl
             Server = new HttpProxyServer();
             Server.Start(uri);
             //Server.Stop();
-            Console.WriteLine(uri);
+            //Console.WriteLine(uri);
             Console.ReadLine();
         }
 

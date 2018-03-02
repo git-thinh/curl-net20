@@ -9,11 +9,13 @@ namespace curl
 {
     interface IDB
     {
-        string[] Populate(IEnumerable<BsonDocument> docs);
+        string[] InsertBulk(IEnumerable<BsonDocument> docs);
         long Count();
         IEnumerable<BsonDocument> Fetch(int skip, int limit);
         IEnumerable<BsonDocument> Select(Query _query);
         bool isOpen();
+        bool Close();
+        bool Delete(string _id);
     }
 
     public enum dbMode
@@ -69,7 +71,7 @@ namespace curl
             }
         }
 
-        public string[] Populate(IEnumerable<BsonDocument> docs)
+        public string[] InsertBulk(IEnumerable<BsonDocument> docs)
         {
             if (!Opened) return new string[] { };
 
@@ -80,11 +82,7 @@ namespace curl
             string[] rs = _engine.InsertReturnIDs(_LITEDB_CONST.COLLECTION_NAME, docs);
             return rs;
         }
-
-        /// <summary>
-        /// Count result but reading all documents from database
-        /// </summary>
-        //public long Count() => _engine.Find("col", _query).Count();
+        
         public long Count()
         {
             if (!Opened) return 0;
@@ -121,6 +119,15 @@ namespace curl
                 .Take(limit);
 
             return result;
+        }
+
+        public bool Close() {
+            _engine.Dispose();
+            return true;
+        }
+
+        public bool Delete(string _id) {
+            return _engine.Delete(_LITEDB_CONST.FIELD_ID, _id);
         }
     }
 }
