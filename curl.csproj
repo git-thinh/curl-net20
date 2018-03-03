@@ -32,6 +32,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.VisualBasic" />
     <Reference Include="Newtonsoft.Json">
       <HintPath>DLL\Newtonsoft.Json.dll</HintPath>
       <Private>False</Private>
@@ -45,7 +46,9 @@
     <Compile Include="app.cs" />
     <Compile Include="DB\dbi.cs" />
     <Compile Include="DB\dbLite.cs" />
-    <Compile Include="DB\message.cs" />
+    <Compile Include="DB\dbOperator.cs" />
+    <Compile Include="DB\Message.cs" />
+    <Compile Include="DB\QueryItem.cs" />
     <Compile Include="Html\HtmlAgilityPack\crc32.cs" />
     <Compile Include="Html\HtmlAgilityPack\EncodingFoundException.cs" />
     <Compile Include="Html\HtmlAgilityPack\HtmlAttribute.cs" />
@@ -324,7 +327,7 @@
     <Compile Include="DB\LiteDB\Utils\LiteException.cs" />
     <Compile Include="DB\LiteDB\Utils\LockControl.cs" />
     <Compile Include="DB\LiteDB\Utils\LockState.cs" />
-    <Compile Include="DB\LiteDB\Utils\Logger.cs" />
+    <Compile Include="DB\Logger.cs" />
     <Compile Include="DB\LiteDB\Utils\MimeTypeConverter.cs" />
     <Compile Include="DB\LiteDB\Utils\StorageUnitHelper.cs" />
     <Compile Include="DB\LiteDB\Utils\StringScanner.cs" />

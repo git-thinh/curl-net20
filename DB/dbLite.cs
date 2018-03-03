@@ -12,7 +12,7 @@ namespace curl
     {
         string[] InsertBulk(IEnumerable<BsonDocument> docs);
         long Count();
-        IEnumerable<BsonDocument> Select(string input);
+        string Select(string input);
         IEnumerable<BsonDocument> Fetch(long skip, long limit);
         BsonDocument FindById(string _id);
         bool RemoveById(string _id);
@@ -27,16 +27,16 @@ namespace curl
         CREATE_AND_OPEN = 2
     }
 
-    public class dbLite : IDB
+    public class DbLite : IDB
     {
         public string Model { set; get; }
         public bool Opened { set; get; } = false;
 
         private LiteEngine _engine = null;
-        
+
         public bool isOpen() { return Opened; }
 
-        public dbLite(string model_name, dbMode mode_type)
+        public DbLite(string model_name, dbMode mode_type)
         {
             Model = model_name;
             string filename = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, model_name + ".db"); // Path.Combine(Path.GetTempPath(), "litedb_paging.db");                  
@@ -58,7 +58,7 @@ namespace curl
 
                     Opened = true;
                     break;
-                case dbMode.CREATE_AND_OPEN:  
+                case dbMode.CREATE_AND_OPEN:
 
                     var disk = new FileDiskService(filename, new LiteDB.FileOptions
                     {
@@ -85,7 +85,7 @@ namespace curl
             string[] rs = _engine.InsertReturnIDs(_LITEDB_CONST.COLLECTION_NAME, docs);
             return rs;
         }
-        
+
         public long Count()
         {
             if (!Opened) return 0;
@@ -106,10 +106,42 @@ namespace curl
             return result;
         }
 
-        public IEnumerable<BsonDocument> Select(string input)
+        //public IEnumerable<BsonDocument> Select(string input)
+        //{
+        //    long k = Count();
+        //    if (!Opened || string.IsNullOrEmpty(input)) return new List<BsonDocument>() { };
+        //    return new List<BsonDocument>() { };
+        //}
+
+        private Query convertQuery() {
+            return null;
+        }
+
+        public string Select(string input)
         {
-            long k = Count();
-            if (!Opened || string.IsNullOrEmpty(input)) return new List<BsonDocument>() { };
+            long _total = Count();
+            if (!Opened)
+                return JsonConvert.SerializeObject(new { ok = false, total = 0, count = 0, msg = "The model " + Model + " is closed" });
+            if (string.IsNullOrEmpty(input))
+                return JsonConvert.SerializeObject(new { ok = false, total = _total, count = 0, msg = "The data of QueryString is NULL. It has format: model=test&action=select&skip=0&limit=10&_op.1=eq&_id.1=8499849689d044a7a5b0ffe9&_andor.1=and&_op.2=eq&___dc.2=20180303" });
+            
+            //model=test&action=select&skip=0&limit=10&_op.1=eq&_id.1=b67cb5e92b6c45e0bab345b2&_andor.1=and&_op.2=eq&___dc.2=20180303
+            input = "model=test&action=select&skip=0&limit=10&"+
+                "f.1=_id&o.1=eq&v.1=b67cb5e92b6c45e0bab345b2"+
+                "&or.2=true&"+
+                "f.2=___dc&o.2=eq&v.2=20180303";
+
+            var a = input.Split('&')
+                .Select(x => x.Split('='))
+                .Where(x => x.Length > 1)
+                .Select(x => new { key = x[0], value = x[1] })
+                .Where(x => x.key.Contains('.') && Microsoft.VisualBasic.Information.IsNumeric(x.key.Split('.')[1]))
+                .ToArray();
+
+            if (a.Length != a.Select(x => x.key).Distinct().ToArray().Length)
+                return JsonConvert.SerializeObject(new { ok = false, total = 0, count = 0, msg = "The keys of QueryString duplicated" });
+            
+            var ws = a.Select(x => new QueryItem() { field = x.key.Split('.')[0], value = x.value, cmd = int.Parse(x.key.Split('.')[1]) }).ToArray();
 
             var jobject = JsonConvert.DeserializeObject<JObject>(input);
             string skip = jobject.getValue("skip");
@@ -124,7 +156,9 @@ namespace curl
             if (_skip < 0) _skip = Rest._SKIP;
             if (_limit <= 0) _limit = Rest._LIMIT;
 
-            return new List<BsonDocument>() { };
+            var result = _engine.Find("col", Query.Not(_LITEDB_CONST.FIELD_ID, 0));
+
+            return JsonConvert.SerializeObject(new { ok = true, total = _total, count = 0, items = new int[] { } });
         }
 
         public IEnumerable<BsonDocument> Fetch(long skip, long limit)
@@ -153,12 +187,14 @@ namespace curl
             return result;
         }
 
-        public bool Close() {
+        public bool Close()
+        {
             _engine.Dispose();
             return true;
         }
 
-        public bool Delete(string _id) {
+        public bool Delete(string _id)
+        {
             return _engine.Delete(_LITEDB_CONST.FIELD_ID, _id);
         }
     }

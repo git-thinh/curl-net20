@@ -5,7 +5,7 @@ using System.Text;
 
 namespace curl
 {
-    public class message
+    public class Message
     {
         [JsonIgnore]
         public string query_string { set; get; }

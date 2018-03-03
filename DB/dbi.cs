@@ -10,8 +10,6 @@ using System.Text;
 
 namespace curl
 {
-
-
     public static class dbi
     {
         const string ___input = "[###]";
@@ -27,7 +25,7 @@ namespace curl
             foreach (string m in files)
             {
                 string mi = m.Substring(0, m.Length - 3).ToLower();
-                IDB db = new dbLite(mi, dbMode.OPEN);
+                IDB db = new DbLite(mi, dbMode.OPEN);
                 if (db.isOpen())
                     dicDB.Add(mi, db);
             }
@@ -38,16 +36,16 @@ namespace curl
             return dicDB.Keys.ToArray();
         }
 
-        public static dbLite Get(string model)
+        public static DbLite Get(string model)
         {
             if (dicDB.ContainsKey(model))
-                return (dbLite)dicDB[model];
+                return (DbLite)dicDB[model];
             return null;
         }
 
         public static bool Open(string model)
         {
-            IDB db = new dbLite(model, dbMode.OPEN);
+            IDB db = new DbLite(model, dbMode.OPEN);
             if (db.isOpen())
             {
                 if (!dicDB.ContainsKey(model))
@@ -68,16 +66,16 @@ namespace curl
         public static string Excute(string messageJson)
         {
             Console.WriteLine(messageJson);
-            message[] a = convertMessage(messageJson);
+            Message[] a = convertMessage(messageJson);
             return Excute(a);
         }
 
-        public static string Excute(message[] a)
+        public static string Excute(Message[] a)
         {
             StringBuilder bi = new StringBuilder("[");
             for (int i = 0; i < a.Length; i++)
             {
-                message m = a[i];
+                Message m = a[i];
                 string _in = m.input;
                 string rs = "{}";
 
@@ -104,7 +102,7 @@ namespace curl
 
         public static bool Create(string model)
         {
-            IDB db = new dbLite(model, dbMode.CREATE_AND_OPEN);
+            IDB db = new DbLite(model, dbMode.CREATE_AND_OPEN);
             if (db.isOpen())
             {
                 if (!dicDB.ContainsKey(model))
@@ -124,11 +122,11 @@ namespace curl
 
         #region [ FUNCTION ]
 
-        private static message[] convertMessage(string paraJson)
+        private static Message[] convertMessage(string paraJson)
         {
             var it = JsonConvert.DeserializeObject<JObject[]>(paraJson);
             if (it != null)
-                return it.Select(x => new message()
+                return it.Select(x => new Message()
                 {
                     //jobject = x,
                     model = x.getValue("model").ToLower(),
@@ -136,7 +134,7 @@ namespace curl
                     input = x.getValue("data", true),
                     output = ___output
                 }).ToArray();
-            return new message[] { };
+            return new Message[] { };
         }
 
         public static string getValue(this JObject it, string name, bool serializeToJson = false)

@@ -62,11 +62,10 @@ namespace curl
                                 if (_model == null) _model = string.Empty;
                                 _model = _model.Trim();
                                 string _qs = Request.Url.Query;
-                                if (!string.IsNullOrEmpty(_qs)) // The character first is '?' then removed
-                                    //_qs = HttpUtility.UrlDecode(_qs).Substring(1);
+                                if (!string.IsNullOrEmpty(_qs)) // The character first is '?' then removed 
                                     _qs = _qs.Substring(1);
                                 else _qs = string.Empty;
-                                htm = dbi.Excute(new message[] { new message() { action = _action, model = _model, input = _input , query_string = _qs } });
+                                htm = dbi.Excute(new Message[] { new Message() { action = _action, model = _model, input = _input , query_string = _qs } });
                                 #endregion
                             }
                             else
