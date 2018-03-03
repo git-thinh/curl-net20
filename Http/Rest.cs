@@ -8,8 +8,8 @@ namespace curl
 {
     public class Rest
     {
-        const long _LIMIT = 10;
-        const long _SKIP = 0;
+        public const long _LIMIT = 10;
+        public const long _SKIP = 0;
 
         // { "model":"test", "action":"create", "data":[{"key":"value1", "key2":"tiếng việt"}] }
         public static string create(message m)
@@ -110,22 +110,20 @@ namespace curl
             return json;
         }
 
-        public static string query(message m)
+        public static string select(message m)
         {
-            string json = "{}";
+            if (string.IsNullOrEmpty(m.query_string))
+                return JsonConvert.SerializeObject(new { ok = false, output = "The data of QueryString is NULL. It has format: model=test&action=select&skip=0&limit=10&_op.1=eq&_id.1=8499849689d044a7a5b0ffe9&_andor.1=and&_op.2=eq&___dc.2=20180303" });
 
-            //var skip = Convert.ToInt32(input);
-            //var limit = 10; 
-            //var result = test.Fetch(skip, limit); 
+            var jobject = JsonConvert.DeserializeObject<JObject>(m.input);
+            string json = @"{""ok"":false,""total"":-1,""count"":-1,""msg"":""Can not find model [" + m.model + @"]""}";
 
-            //foreach (var doc in result)
-            //{
-            //    Console.WriteLine(
-            //        doc["_id"].AsString.PadRight(6) + " - " +
-            //        doc["name"].AsString.PadRight(30) + "  -> " +
-            //        doc["age"].AsInt32);
-            //}
-
+            IDB db = dbi.Get(m.model);
+            if (db != null)
+            {
+                var result = db.Select(m.query_string).Select(x => x.toJson).ToArray();
+                json = @"{""ok"":true,""total"":" + db.Count().ToString() + @",""count"":" + result.Length.ToString() + @",""items"":[" + string.Join(",", result) + @"]}";
+            }
             return json;
         }
 

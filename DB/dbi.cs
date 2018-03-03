@@ -10,17 +10,7 @@ using System.Text;
 
 namespace curl
 {
-    public class message
-    {
-        //[JsonIgnore]
-        //public JObject jobject { set; get; }
 
-        public string model { set; get; }
-        public string action { set; get; }
-
-        public string input { set; get; }
-        public string output { set; get; }
-    }
 
     public static class dbi
     {

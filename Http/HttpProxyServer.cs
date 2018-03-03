@@ -61,7 +61,12 @@ namespace curl
                                 _dicInput.TryGetValue("model", out _model);
                                 if (_model == null) _model = string.Empty;
                                 _model = _model.Trim();
-                                htm = dbi.Excute(new message[] { new message() { action = _action, model = _model, input = _input } });
+                                string _qs = Request.Url.Query;
+                                if (!string.IsNullOrEmpty(_qs)) // The character first is '?' then removed
+                                    //_qs = HttpUtility.UrlDecode(_qs).Substring(1);
+                                    _qs = _qs.Substring(1);
+                                else _qs = string.Empty;
+                                htm = dbi.Excute(new message[] { new message() { action = _action, model = _model, input = _input , query_string = _qs } });
                                 #endregion
                             }
                             else
@@ -77,6 +82,7 @@ namespace curl
                                             bi.Append("<h3>+ " + mi + ": ");
                                             bi.Append("<a href='?model=" + mi + "&action=fetch&skip=0&limit=10' target='_new'>fetch</a> | ");
                                             bi.Append("<a href='?model=" + mi + "&action=getbyid&_id=" + _id + "' target='_new'>getbyid</a> | ");
+                                            bi.Append("<a href='?model=" + mi + "&action=select&skip=0&limit=10&_op.1=eq&_id.1=" + _id + "&_andor.1=and&_op.2=eq&___dc.2=" + DateTime.Now.ToString("yyyyMMdd") + "' target='_new'>select</a> | ");
                                             bi.Append("<a href='?model=" + mi + "&action=removebyid&_id=" + _id + "' target='_new'>removebyid</a> | ");
                                             bi.Append("</h3>");
                                         }

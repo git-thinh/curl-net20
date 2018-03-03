@@ -45,6 +45,7 @@
     <Compile Include="app.cs" />
     <Compile Include="DB\dbi.cs" />
     <Compile Include="DB\dbLite.cs" />
+    <Compile Include="DB\message.cs" />
     <Compile Include="Html\HtmlAgilityPack\crc32.cs" />
     <Compile Include="Html\HtmlAgilityPack\EncodingFoundException.cs" />
     <Compile Include="Html\HtmlAgilityPack\HtmlAttribute.cs" />

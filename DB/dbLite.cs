@@ -1,4 +1,6 @@
 ﻿using LiteDB;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -10,6 +12,7 @@ namespace curl
     {
         string[] InsertBulk(IEnumerable<BsonDocument> docs);
         long Count();
+        IEnumerable<BsonDocument> Select(string input);
         IEnumerable<BsonDocument> Fetch(long skip, long limit);
         BsonDocument FindById(string _id);
         bool RemoveById(string _id);
@@ -101,6 +104,27 @@ namespace curl
             if (!Opened) return false;
             var result = _engine.Delete(_LITEDB_CONST.COLLECTION_NAME, new BsonValue(new ObjectId(_id)));
             return result;
+        }
+
+        public IEnumerable<BsonDocument> Select(string input)
+        {
+            long k = Count();
+            if (!Opened || string.IsNullOrEmpty(input)) return new List<BsonDocument>() { };
+
+            var jobject = JsonConvert.DeserializeObject<JObject>(input);
+            string skip = jobject.getValue("skip");
+            string limit = jobject.getValue("limit");
+
+            long _skip = 0;
+            long _limit = 0;
+
+            long.TryParse(skip, out _skip);
+            long.TryParse(limit, out _limit);
+
+            if (_skip < 0) _skip = Rest._SKIP;
+            if (_limit <= 0) _limit = Rest._LIMIT;
+
+            return new List<BsonDocument>() { };
         }
 
         public IEnumerable<BsonDocument> Fetch(long skip, long limit)
