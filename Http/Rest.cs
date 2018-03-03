@@ -2,6 +2,7 @@
 using LiteDB;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System;
 
 namespace curl
 {
@@ -45,6 +46,33 @@ namespace curl
             return json;
         }
 
+        //http://127.0.0.1:8888?model=test&action=getbyid&_id=5744a604f1fa4b04a82cb94a
+        public static string removebyid(message m)
+        {
+            string json = "{}";
+            try
+            {
+                var jobject = JsonConvert.DeserializeObject<JObject>(m.input);
+                string id = jobject.getValue(_LITEDB_CONST.FIELD_ID);
+
+                if (id.Length == 24)
+                {
+                    IDB db = dbi.Get(m.model);
+                    {
+                        bool result = db.RemoveById(id);
+                        json = @"{""ok"":true,""total"":" + db.Count().ToString() + @",""remove"":" + result.ToString().ToLower() + @", ""item"":""" + id + @"""}";
+                    }
+                }
+                else
+                    json = JsonConvert.SerializeObject(new { ok = false, output = "The field _id should be 24 hex characters" });
+            }
+            catch (Exception ex)
+            {
+                json = JsonConvert.SerializeObject(new { ok = false, output = ex.Message });
+            }
+            return json;
+        }
+
         //http://127.0.0.1:8888/?model=test&action=count
         public static string count(message m)
         {
@@ -59,9 +87,10 @@ namespace curl
         //http://127.0.0.1:8888/?model=test&action=fetch&skip=0&limit=10
         public static string fetch(message m)
         {
+            var jobject = JsonConvert.DeserializeObject<JObject>(m.input);
             string json = @"{""ok"":false,""total"":-1,""count"":-1,""msg"":""Can not find model [" + m.model + @"]""}";
-            string skip = m.jobject.getValue("skip");
-            string limit = m.jobject.getValue("limit");
+            string skip = jobject.getValue("skip");
+            string limit = jobject.getValue("limit");
 
             long _skip = 0;
             long _limit = 0;
@@ -100,21 +129,29 @@ namespace curl
             return json;
         }
 
-        //http://127.0.0.1:8888?model=test&action=getbyid&_id=20180302091035965
+        //http://127.0.0.1:8888?model=test&action=getbyid&_id=5744a604f1fa4b04a82cb94a
         public static string getbyid(message m)
-        {
+        { 
             string json = "{}";
-            string id = m.jobject.getValue(_LITEDB_CONST.FIELD_ID);
-
-            if (!string.IsNullOrEmpty(id))
+            try
             {
-                IDB db = dbi.Get(m.model);
-                {
-                    var result = db.FindById(id);
-                    json = @"{""ok"":true,""total"":" + db.Count().ToString() + @",""count"":" + (result == null ? "0" : "1") + @", ""items"":" + (result == null ? "null" : result.toJson) + @"}";
-                }
-            }
+                var jobject = JsonConvert.DeserializeObject<JObject>(m.input);
+                string id = jobject.getValue(_LITEDB_CONST.FIELD_ID);
 
+                if (id.Length == 24)
+                {
+                    IDB db = dbi.Get(m.model);
+                    {
+                        var result = db.FindById(id);
+                        json = @"{""ok"":true,""total"":" + db.Count().ToString() + @",""count"":" + (result == null ? "0" : "1") + @", ""items"":" + (result == null ? "null" : result.toJson) + @"}";
+                    }
+                }
+                else
+                    json = JsonConvert.SerializeObject(new { ok = false, output = "The field _id should be 24 hex characters" });
+            }
+            catch (Exception ex) {
+                json = JsonConvert.SerializeObject(new { ok = false, output = ex.Message });
+            }
             return json;
         }
 

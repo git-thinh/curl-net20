@@ -12,8 +12,8 @@ namespace curl
 {
     public class message
     {
-        [JsonIgnore]
-        public JObject jobject { set; get; }
+        //[JsonIgnore]
+        //public JObject jobject { set; get; }
 
         public string model { set; get; }
         public string action { set; get; }
@@ -140,7 +140,7 @@ namespace curl
             if (it != null)
                 return it.Select(x => new message()
                 {
-                    jobject = x,
+                    //jobject = x,
                     model = x.getValue("model").ToLower(),
                     action = x.getValue("action"),
                     input = x.getValue("data", true),

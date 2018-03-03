@@ -12,6 +12,7 @@ namespace curl
         long Count();
         IEnumerable<BsonDocument> Fetch(long skip, long limit);
         BsonDocument FindById(string _id);
+        bool RemoveById(string _id);
         bool isOpen();
         bool Close();
         bool Delete(string _id);
@@ -92,6 +93,13 @@ namespace curl
         {
             if (!Opened) return null;
             var result = _engine.FindById(_LITEDB_CONST.COLLECTION_NAME, new BsonValue(new ObjectId(_id)));
+            return result;
+        }
+
+        public bool RemoveById(string _id)
+        {
+            if (!Opened) return false;
+            var result = _engine.Delete(_LITEDB_CONST.COLLECTION_NAME, new BsonValue(new ObjectId(_id)));
             return result;
         }
 
