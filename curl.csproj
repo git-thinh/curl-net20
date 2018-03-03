@@ -45,8 +45,8 @@
   <ItemGroup>
     <Compile Include="app.cs" />
     <Compile Include="DB\dbi.cs" />
-    <Compile Include="DB\dbLite.cs" />
-    <Compile Include="DB\dbOperator.cs" />
+    <Compile Include="DB\DbLite.cs" />
+    <Compile Include="DB\DbOperator.cs" />
     <Compile Include="DB\IDB.cs" />
     <Compile Include="DB\Message.cs" />
     <Compile Include="DB\QueryItem.cs" />
