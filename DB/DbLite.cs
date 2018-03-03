@@ -1,5 +1,4 @@
-﻿
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -8,8 +7,6 @@ using System.Linq;
 
 namespace LiteDB
 {
-
-
     public enum dbMode
     {
         OPEN = 1,
@@ -142,8 +139,8 @@ namespace LiteDB
             long.TryParse(skip, out _skip);
             long.TryParse(limit, out _limit);
 
-            if (_skip < 0) _skip = Rest._SKIP;
-            if (_limit <= 0) _limit = Rest._LIMIT;
+            if (_skip < 0) _skip = _LITEDB_CONST._SKIP;
+            if (_limit <= 0) _limit = _LITEDB_CONST._LIMIT;
 
             var result = _engine.Find("col", Query.Not(_LITEDB_CONST.FIELD_ID, 0));
 

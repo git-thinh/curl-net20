@@ -10,5 +10,7 @@ namespace LiteDB
         public const string FIELD_ID = "_id";
         public const string FIELD_DATE_CREATE = "___dc";
         public const string FIELD_TIME_CREATE = "___tc";
+        public const long _LIMIT = 10;
+        public const long _SKIP = 0;
     }
 }

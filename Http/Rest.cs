@@ -1,16 +1,13 @@
 ﻿using System.Linq;
-using LiteDB;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using LiteDB;
 
 namespace curl
 {
     public class Rest
     {
-        public const long _LIMIT = 10;
-        public const long _SKIP = 0;
-
         // { "model":"test", "action":"create", "data":[{"key":"value1", "key2":"tiếng việt"}] }
         public static string create(Message m)
         {
@@ -98,8 +95,8 @@ namespace curl
             long.TryParse(skip, out _skip);
             long.TryParse(limit, out _limit);
 
-            if (_skip < 0) _skip = _SKIP;
-            if (_limit <= 0) _limit = _LIMIT;
+            if (_skip < 0) _skip = _LITEDB_CONST._SKIP;
+            if (_limit <= 0) _limit = _LITEDB_CONST._LIMIT;
 
             IDB db = dbi.Get(m.model);
             if (db != null)
