@@ -22,6 +22,7 @@ namespace curl
             string htm = "";
             byte[] bOutput;
             Stream OutputStream = Response.OutputStream;
+            StringBuilder bi = new StringBuilder();
 
             switch (Request.HttpMethod)
             {
@@ -45,13 +46,19 @@ namespace curl
                     #region 
                     string _type = "text/html; charset=utf-8";
                     string _action = Request.QueryString["action"];
-                    string _input = string.Empty, _model = string.Empty;                    
+                    string _input = string.Empty, _model = string.Empty;
                     JObject _jobject;
 
                     switch (url)
                     {
-                        case "/":
                         case "/favicon.ico":
+                            break;
+                        case "/":
+                            var a = dbi.model_getAll();
+                            bi.Append("<h1>List model: " + a.Length + "</h1><hr>");
+                            foreach (string mi in a)
+                                bi.Append("<h3><a href='?model=" + mi + "&action=fetch&skip=0&limit=10' target='new'>" + mi + "</a></h3>");
+                            htm = bi.ToString();
                             break;
                         default:
                             if (!string.IsNullOrEmpty(_action))
@@ -128,7 +135,7 @@ Host: " + uri.Host + @"
                             }
                             break;
                     }
-                    
+
                     bOutput = System.Text.Encoding.UTF8.GetBytes(htm);
                     Response.ContentType = _type;
                     Response.ContentLength64 = bOutput.Length;

@@ -43,6 +43,11 @@ namespace curl
             }
         }
 
+        public static string[] model_getAll()
+        {
+            return dicDB.Keys.ToArray();
+        }
+
         public static dbLite Get(string model)
         {
             if (dicDB.ContainsKey(model))
