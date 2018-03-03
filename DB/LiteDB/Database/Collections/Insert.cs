@@ -86,7 +86,8 @@ namespace LiteDB
         /// </summary>
         private bool RemoveDocId(BsonDocument doc)
         {
-            if (doc.TryGetValue("_id", out var id)) 
+            BsonValue id;
+            if (doc.TryGetValue("_id", out id)) 
             {
                 // check if exists _autoId and current id is "empty"
                 if ((_autoId == BsonType.ObjectId && (id.IsNull || id.AsObjectId == ObjectId.Empty)) ||

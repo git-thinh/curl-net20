@@ -33,8 +33,9 @@ namespace LiteDB
             // if is a method call, get first
             while(expr.NodeType == ExpressionType.Lambda)
             {
-                if (((LambdaExpression)expr).Body is UnaryExpression unary)
+                if (((LambdaExpression)expr).Body is UnaryExpression)
                 {
+                    UnaryExpression unary = (UnaryExpression)((LambdaExpression)expr).Body;
                     expr = unary.Operand;
                 }
                 else

@@ -112,8 +112,9 @@ namespace LiteDB
 
             _pager.SetDirty(col);
 
+            BsonValue id;
             // if no _id, add one
-            if (!doc.RawValue.TryGetValue("_id", out var id))
+            if (!doc.RawValue.TryGetValue("_id", out id))
             {
                 doc["_id"] = id =
                     autoId == BsonType.ObjectId ? new BsonValue(ObjectId.NewObjectId()) :

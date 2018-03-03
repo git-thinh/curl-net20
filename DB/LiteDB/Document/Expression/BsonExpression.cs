@@ -442,7 +442,8 @@ namespace LiteDB
             }
             else if (value.IsDocument)
             {
-                if (value.AsDocument.TryGetValue(name, out BsonValue item))
+                BsonValue item;
+                if (value.AsDocument.TryGetValue(name, out item))
                 {
                     // fill destroy action to remove value from root
                     item.Destroy = () => value.AsDocument.Remove(name);
@@ -459,7 +460,8 @@ namespace LiteDB
         {
             foreach (var doc in values.Where(x => x.IsDocument).Select(x => x.AsDocument))
             {
-                if (doc.TryGetValue(name, out BsonValue item))
+                BsonValue item;
+                if (doc.TryGetValue(name, out item))
                 {
                     // fill destroy action to remove value from parent document
                     item.Destroy = () => doc.Remove(name);

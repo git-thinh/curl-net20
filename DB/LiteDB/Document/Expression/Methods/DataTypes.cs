@@ -81,7 +81,8 @@ namespace LiteDB
                 }
                 else
                 {
-                    if (Int32.TryParse(value.AsString, out var val))
+                    Int32 val;
+                    if (Int32.TryParse(value.AsString, out val))
                     {
                         yield return val;
                     }
@@ -102,7 +103,8 @@ namespace LiteDB
                 }
                 else
                 {
-                    if (Int64.TryParse(value.AsString, out var val))
+                    Int64 val;
+                    if (Int64.TryParse(value.AsString, out val))
                     {
                         yield return val;
                     }
@@ -123,7 +125,8 @@ namespace LiteDB
                 }
                 else
                 {
-                    if (Double.TryParse(value.AsString, NumberStyles.Any, CultureInfo.InvariantCulture.NumberFormat, out var val))
+                    Double val;
+                    if (Double.TryParse(value.AsString, NumberStyles.Any, CultureInfo.InvariantCulture.NumberFormat, out val))
                     {
                         yield return val;
                     }
@@ -144,7 +147,8 @@ namespace LiteDB
                 }
                 else
                 {
-                    if (Decimal.TryParse(value.AsString, NumberStyles.Any, CultureInfo.InvariantCulture.NumberFormat, out var val))
+                    Decimal val;
+                    if (Decimal.TryParse(value.AsString, NumberStyles.Any, CultureInfo.InvariantCulture.NumberFormat, out val))
                     {
                         yield return val;
                     }
@@ -270,7 +274,8 @@ namespace LiteDB
                 }
                 else
                 {
-                    if (DateTime.TryParse(value.AsString, CultureInfo.InvariantCulture.DateTimeFormat, DateTimeStyles.None, out var val))
+                    DateTime val;
+                    if (DateTime.TryParse(value.AsString, CultureInfo.InvariantCulture.DateTimeFormat, DateTimeStyles.None, out val))
                     {
                         yield return val;
                     }

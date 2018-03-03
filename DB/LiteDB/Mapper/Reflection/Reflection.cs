@@ -33,7 +33,8 @@ namespace LiteDB
         {
             try
             {
-                if (_cacheCtor.TryGetValue(type, out CreateObject c))
+                CreateObject c;
+                if (_cacheCtor.TryGetValue(type, out c))
                 {
                     return c();
                 }
@@ -47,7 +48,8 @@ namespace LiteDB
             {
                 try
                 {
-                    if (_cacheCtor.TryGetValue(type, out CreateObject c))
+                    CreateObject c;
+                    if (_cacheCtor.TryGetValue(type, out c))
                     {
                         return c();
                     }

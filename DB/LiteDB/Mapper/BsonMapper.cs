@@ -212,7 +212,8 @@ namespace LiteDB
         {
             //TODO: needs check if Type if BsonDocument? Returns empty EntityMapper?
 
-            if (!_entities.TryGetValue(type, out EntityMapper mapper))
+            EntityMapper mapper;
+            if (!_entities.TryGetValue(type, out mapper))
             {
                 lock (_entities)
                 {

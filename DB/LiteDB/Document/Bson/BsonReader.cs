@@ -34,7 +34,8 @@ namespace LiteDB
 
             while (reader.Position < end)
             {
-                var value = this.ReadElement(reader, out string name);
+                string name;
+                var value = this.ReadElement(reader, out name);
                 obj.RawValue[name] = value;
             }
 
@@ -54,7 +55,8 @@ namespace LiteDB
 
             while (reader.Position < end)
             {
-                var value = this.ReadElement(reader, out string name);
+                string name;
+                var value = this.ReadElement(reader, out name);
                 arr.Add(value);
             }
 
