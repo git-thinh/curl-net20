@@ -81,7 +81,13 @@ namespace LiteDB
                 MethodInfo method = m_type.GetMethod(m.action, BindingFlags.Public | BindingFlags.Static);
                 if (method != null)
                 {
-                    rs = (string)method.Invoke(null, new object[] { m });
+                    try
+                    {
+                        rs = (string)method.Invoke(null, new object[] { m });
+                    }
+                    catch (Exception ex) {
+                        rs = JsonConvert.SerializeObject(new { ok = false, msg = "The action ["+m.action+"] of model ["+ m.model + "] has an error occurred: " + ex.Message });
+                    }
 
                     m.input = ___input;
                     m.output = ___output;

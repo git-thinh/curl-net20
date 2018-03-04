@@ -111,10 +111,8 @@ namespace curl
         {
             if (string.IsNullOrEmpty(m.query_string))
                 return JsonConvert.SerializeObject(new { ok = false, total = 0, count = 0, msg = "The data of QueryString is NULL. It has format: model=test&action=select&skip=0&limit=10&_op.1=eq&_id.1=8499849689d044a7a5b0ffe9&_andor.1=and&_op.2=eq&___dc.2=20180303" });
-
-            var jobject = JsonConvert.DeserializeObject<JObject>(m.input);
-            string json =
-                JsonConvert.SerializeObject(new { ok = false, total = 0, count = 0, msg = "Can not find model [" + m.model + @"]" });
+            
+            string json =JsonConvert.SerializeObject(new { ok = false, total = 0, count = 0, msg = "Can not find model [" + m.model + @"]" });
             
             IDB db = dbi.Get(m.model);
             if (db != null)
@@ -148,8 +146,7 @@ namespace curl
             }
             return json;
         }
-
-
+        
         public static string import_file(Message m)
         {
             string json = "{}";

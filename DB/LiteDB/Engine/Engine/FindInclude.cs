@@ -9,6 +9,14 @@ namespace LiteDB
         /// <summary>
         /// Find for documents in a collection using Query definition. Support for include reference documents. Use Path syntax
         /// </summary>
+        public IEnumerable<string> FindIDs(string collection, Query query)
+        {
+            return this.GetIDs(collection, query);             
+        }//end function
+
+        /// <summary>
+        /// Find for documents in a collection using Query definition. Support for include reference documents. Use Path syntax
+        /// </summary>
         public IEnumerable<BsonDocument> Find(string collection, Query query, string[] includes, int skip = 0, int limit = int.MaxValue)
         {
             if (includes == null) throw new ArgumentNullException(nameof(includes));
@@ -56,6 +64,7 @@ namespace LiteDB
 
                 yield return doc;
             }
-        }
+        }//end function
+
     }
 }

@@ -105,50 +105,53 @@ namespace LiteDB
             switch (_operator)
             {
                 case "all":            //int order = Ascending)
-                    _query = Query.All();
+                    //_query = Query.All();
                     break;
                 case "all_field":      //string field, int order = Ascending)
-                    _query = Query.All();
+                    //_query = Query.All();
                     break;
                 case "eq":             //string field, BsonValue value)
-                    _query = Query.All();
+                    _query = Query.EQ(_field, new BsonValue(_value));
                     break;
                 case "lt":             //string field, BsonValue value)
-                    _query = Query.All();
+                    _query = Query.LT(_field, new BsonValue(_value));
                     break;
                 case "lte":            //string field, BsonValue value)
-                    _query = Query.All();
+                    _query = Query.LTE(_field, new BsonValue(_value));
                     break;
                 case "gt":             //string field, BsonValue value)
-                    _query = Query.All();
+                    _query = Query.GT(_field, new BsonValue(_value));
                     break;
                 case "gte":            //string field, BsonValue value)
-                    _query = Query.All();
+                    _query = Query.GTE(_field, new BsonValue(_value));
                     break;
                 case "between":        //string field, BsonValue start, BsonValue end, bool startEquals = true, bool endEquals = true)
-                    _query = Query.All();
+                    string[] a = _value.Split('|');
+                    string v1 = a[0], v2 = a[1];
+                    _query = Query.Between(_field, new BsonValue(v1), new BsonValue(v2));
                     break;
                 case "start_with":     //string field, string value)
-                    _query = Query.All();
+                    _query = Query.StartsWith(_field, _value);
                     break;
                 case "contains":       //string field, string value)
-                    _query = Query.All();
+                    _query = Query.Contains(_field, _value);
                     break;
                 case "not":            //string field, BsonValue value)
-                    _query = Query.All();
+                    _query = Query.Not(_field, new BsonValue(_value));
                     break;
                 case "not_query":      //Query query, int order = Query.Ascending)
                     _query = Query.All();
                     break;
-                case "in_bson_array":  //string field, BsonArray value)
-                    _query = Query.All();
-                    break;
+                //case "in_bson_array":  //string field, BsonArray value)
+                //    _query = Query.All();
+                //    break;
                 case "in_array":       //string field, params BsonValue[] values)
-                    _query = Query.All();
+                    BsonValue[] a_in_array = _value.Split('|').Select(x => new BsonValue(x)).ToArray();
+                    _query = Query.In(_field, a_in_array);
                     break;
-                case "in_ienumerable": //string field, IEnumerable<BsonValue> values)      
-                    _query = Query.All();
-                    break;
+                //case "in_ienumerable": //string field, IEnumerable<BsonValue> values)      
+                //    _query = Query.All();
+                //    break;
             }
             return _query;
         }
@@ -166,12 +169,12 @@ namespace LiteDB
                 msg = "The data of QueryString is NULL. It has format: model=test&action=select&skip=0&limit=10&_op.1=eq&_id.1=8499849689d044a7a5b0ffe9&_andor.1=and&_op.2=eq&___dc.2=20180303"
             });
             if (string.IsNullOrEmpty(input)) return msg_field_null;
-
-            //model=test&action=select&skip=0&limit=10&_op.1=eq&_id.1=b67cb5e92b6c45e0bab345b2&_andor.1=and&_op.2=eq&___dc.2=20180303
-            input = "model=test&action=select&skip=0&limit=10&" +
-                "f.1=_id&o.1=eq&v.1=b67cb5e92b6c45e0bab345b2" +
-                "&or=2&" +
-                "f.2=___dc&o.2=eq&v.2=20180303";
+            
+            //input = "model=test&action=select&skip=0&limit=10&" +
+            //    "f.1=_id&o.1=eq&v.1=b67cb5e92b6c45e0bab345b2" +
+            //    "&or=2.3" +
+            //    "&f.2=___dc&o.2=eq&v.2=20180303" +
+            //    "&f.3=___dc&o.3=eq&v.3=20180303";
 
             var a = input.Split('&')
                 .Select(x => x.Split('='))
@@ -189,7 +192,7 @@ namespace LiteDB
                 .ToArray();
 
             int[] aCmdOR = ws.Where(x => x.isOr).Select(x => x.cmd).Distinct().ToArray();
-            List<Query> lsAnd = new List<Query>() { };
+                Query _query = null;
             List<Query> lsOr = new List<Query>() { };
             for (int i = 0; i < aCmdOR.Length; i++)
             {
@@ -197,13 +200,62 @@ namespace LiteDB
                 string _field = ai.Where(x => x.field == "f").Select(x => x.value).SingleOrDefault();
                 string _operator = ai.Where(x => x.field == "o").Select(x => x.value).SingleOrDefault();
                 string _value = ai.Where(x => x.field == "v").Select(x => x.value).SingleOrDefault();
-                if (string.IsNullOrEmpty(_field) || string.IsNullOrEmpty(_operator)) return msg_field_null;
-                lsOr.Add(convertQuery(_field, _operator, _value));
+                if (string.IsNullOrEmpty(_field) || string.IsNullOrEmpty(_operator))
+                    return msg_field_null;
+                _query = convertQuery(_field, _operator, _value);
+                if (_query != null)
+                    lsOr.Add(_query);
             }
 
-            var jobject = JsonConvert.DeserializeObject<JObject>(input);
-            string skip = jobject.getValue("skip");
-            string limit = jobject.getValue("limit");
+            int[] aCmdAnd = ws.Where(x => x.isOr == false).Select(x => x.cmd).Distinct().ToArray();
+            List<Query> lsAnd = new List<Query>() { };
+            for (int i = 0; i < aCmdAnd.Length; i++)
+            {
+                var ai = ws.Where(x => x.cmd == aCmdAnd[i]).ToArray();
+                string _field = ai.Where(x => x.field == "f").Select(x => x.value).SingleOrDefault();
+                string _operator = ai.Where(x => x.field == "o").Select(x => x.value).SingleOrDefault();
+                string _value = ai.Where(x => x.field == "v").Select(x => x.value).SingleOrDefault();
+                if (string.IsNullOrEmpty(_field) || string.IsNullOrEmpty(_operator))
+                    return msg_field_null;
+                _query = convertQuery(_field, _operator, _value);
+                if(_query != null) lsAnd.Add(_query);
+            }
+
+            string[] idOr = new string[] { }, idAnd = new string[] { };
+            switch (idOr.Length)
+            {
+                case 0:
+                    break;
+                case 1:
+                    idOr = _engine.FindIDs(_LITEDB_CONST.COLLECTION_NAME, lsAnd[0]).ToArray();
+                    break;
+                default:
+                    idOr = _engine.FindIDs(_LITEDB_CONST.COLLECTION_NAME, Query.And(lsAnd.ToArray())).ToArray();
+                    break;
+            }
+
+            switch (idAnd.Length)
+            {
+                case 0:
+                    break;
+                case 1:
+                    idAnd = _engine.FindIDs(_LITEDB_CONST.COLLECTION_NAME, lsOr[0]).ToArray();
+                    break;
+                default:
+                    idAnd = _engine.FindIDs(_LITEDB_CONST.COLLECTION_NAME, Query.Or(lsOr.ToArray())).ToArray();
+                    break;
+            }
+
+            List<string> listID = new List<string>(idAnd);
+            listID.AddRange(idOr);
+            listID = listID.Distinct().ToList();
+
+            var jobject = a.Where(x => !x.key.Contains("."))
+                .GroupBy(x => x.key).Select(x => x.First())
+                .ToDictionary(x => x.key, x => x.value);
+            string skip, limit;
+            jobject.TryGetValue("skip", out skip);
+            jobject.TryGetValue("limit", out limit);
 
             long _skip = 0;
             long _limit = 0;
@@ -214,9 +266,12 @@ namespace LiteDB
             if (_skip < 0) _skip = _LITEDB_CONST._SKIP;
             if (_limit <= 0) _limit = _LITEDB_CONST._LIMIT;
 
-            var result = _engine.Find("col", Query.Not(_LITEDB_CONST.FIELD_ID, 0));
+            BsonValue[] idRs = listID.Skip(_skip).Take(_limit).Select(x => new BsonValue(x)).ToArray();
+            var result = _engine
+                .Find(_LITEDB_CONST.COLLECTION_NAME, Query.In(_LITEDB_CONST.FIELD_ID, idRs))
+                .Select(x => x.toJson).ToArray();
 
-            return JsonConvert.SerializeObject(new { ok = true, total = _total, count = 0, items = new int[] { } });
+            return @"{""ok"":true,""total"":" + _total.ToString() + @",""count"":" + result.Length.ToString() + @",""items"":[" + string.Join(",", result) + @"]}";
         }
 
         public IEnumerable<BsonDocument> Fetch(long skip, long limit)
@@ -238,7 +293,7 @@ namespace LiteDB
             ////    .Skip(skip)
             ////    .Take(limit);
 
-            var result = _engine.Find("col", Query.Not(_LITEDB_CONST.FIELD_ID, 0))
+            var result = _engine.Find(_LITEDB_CONST.COLLECTION_NAME, Query.All())
                 .Skip(skip)
                 .Take(limit);
 

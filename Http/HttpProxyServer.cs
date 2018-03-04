@@ -66,7 +66,7 @@ namespace curl
                                 if (!string.IsNullOrEmpty(_qs)) // The character first is '?' then removed 
                                     _qs = _qs.Substring(1);
                                 else _qs = string.Empty;
-                                htm = dbi.Excute(new Message[] { new Message() { action = _action, model = _model, input = _input , query_string = _qs } });
+                                htm = dbi.Excute(new Message[] { new Message() { action = _action, model = _model, input = _input, query_string = _qs } });
                                 #endregion
                             }
                             else
@@ -74,20 +74,27 @@ namespace curl
                                 switch (url)
                                 {
                                     case "/":
+                                        #region
                                         var a = dbi.model_getAll();
                                         bi.Append("<h1>List model: " + a.Length + "</h1><hr>");
                                         string _id = Guid.NewGuid().ToString().Replace("-", string.Empty).ToLower().Substring(0, 24);
+                                        string _select = "model={0}&action=select&skip=0&limit=10&" +
+                                            "f.1=_id&o.1=eq&v.1=" + _id +
+                                            "&or=2.3" +
+                                            "&f.2=___dc&o.2=eq&v.2={1}" +
+                                            "&f.3=___dc&o.3=eq&v.3={2}";
                                         foreach (string mi in a)
                                         {
                                             bi.Append("<h3>+ " + mi + ": ");
                                             bi.Append("<a href='?model=" + mi + "&action=fetch&skip=0&limit=10' target='_new'>fetch</a> | ");
                                             bi.Append("<a href='?model=" + mi + "&action=getbyid&_id=" + _id + "' target='_new'>getbyid</a> | ");
-                                            bi.Append("<a href='?model=" + mi + "&action=select&skip=0&limit=10&_op.1=eq&_id.1=" + _id + "&_andor.1=and&_op.2=eq&___dc.2=" + DateTime.Now.ToString("yyyyMMdd") + "' target='_new'>select</a> | ");
+                                            bi.Append("<a href='?" + string.Format(_select, mi, DateTime.Now.AddDays(-1).ToString("yyyyMMdd"), DateTime.Now.ToString("yyyyMMdd")) + "' target='_new'>select</a> | ");
                                             bi.Append("<a href='?model=" + mi + "&action=removebyid&_id=" + _id + "' target='_new'>removebyid</a> | ");
                                             bi.Append("</h3>");
                                         }
                                         htm = bi.ToString();
                                         break;
+                                    #endregion
                                     default:
                                         #region
 
