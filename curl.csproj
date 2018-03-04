@@ -32,7 +32,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.VisualBasic" />
     <Reference Include="Newtonsoft.Json">
       <HintPath>DLL\Newtonsoft.Json.dll</HintPath>
       <Private>False</Private>
@@ -49,6 +48,7 @@
     <Compile Include="DB\DbOperator.cs" />
     <Compile Include="DB\IDB.cs" />
     <Compile Include="DB\Message.cs" />
+    <Compile Include="DB\QueryBuilder.cs" />
     <Compile Include="DB\QueryItem.cs" />
     <Compile Include="Html\HtmlAgilityPack\crc32.cs" />
     <Compile Include="Html\HtmlAgilityPack\EncodingFoundException.cs" />
@@ -177,6 +177,7 @@
     <Compile Include="DB\LiteDB\Engine\Structures\IndexNode.cs" />
     <Compile Include="DB\LiteDB\Engine\Structures\PageAddress.cs" />
     <Compile Include="Linq\DeepCopy.Assign.cs" />
+    <Compile Include="Linq\IsNumber.cs" />
     <Compile Include="Linq\Lucene.Net.cs" />
     <Compile Include="Linq\ReaderWriterLockSlim.cs" />
     <Compile Include="Linq\System.Collections.Generic\HashSet.cs" />
