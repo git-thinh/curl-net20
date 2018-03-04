@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using LiteDB;
+using System.Collections.Generic;
 
 namespace curl
 {
@@ -11,6 +12,9 @@ namespace curl
         // { "model":"test", "action":"create", "data":[{"key":"value1", "key2":"tiếng việt"}] }
         public static string create(Message m)
         {
+            if (m.method != "POST")
+                return JsonConvert.SerializeObject(new { ok = false, total = 0, count = 0, msg = "The method action [" + m.action + "] for model [" + m.model + "] must be POST" });
+
             string json = "{}";
             //string indexes = m.jobject.getValue("indexes");
 
@@ -24,9 +28,12 @@ namespace curl
             return json;
         }
 
-        // { "model":"test", "action":"create", "data":[{"key":"value1", "key2":"tiếng việt"}] }
+        // { "model":"test", "action":"insert", "data":[{"key":"value1", "key2":"tiếng việt"}] }
         public static string insert(Message m)
         {
+            if (m.method != "POST")
+                return JsonConvert.SerializeObject(new { ok = false, total = 0, count = 0, msg = "The method action [" + m.action + "] for model [" + m.model + "] must be POST" });
+
             string json = "{}";
 
             var ips = JsonConvert.DeserializeObject<JObject[]>(m.input);
@@ -46,22 +53,48 @@ namespace curl
         //http://127.0.0.1:8888?model=test&action=getbyid&_id=5744a604f1fa4b04a82cb94a
         public static string removebyid(Message m)
         {
+            if (m.method != "POST")
+                return JsonConvert.SerializeObject(new { ok = false, total = 0, count = 0, msg = "The method action [" + m.action + "] for model [" + m.model + "] must be POST" });
+
             string json = "{}";
             try
             {
-                var jobject = JsonConvert.DeserializeObject<JObject>(m.input);
-                string id = jobject.getValue(_LITEDB_CONST.FIELD_ID);
+                string[] ids = new string[] { };
+                try
+                {
+                    ids = JsonConvert.DeserializeObject<string[]>(m.input);
+                }
+                catch (Exception ex)
+                {
+                    return JsonConvert.SerializeObject(new { ok = false, output = "The IDs is invalid format JSON" });
+                }
 
-                if (id.Length == 24)
+                if (ids.Length > 0)
                 {
                     IDB db = dbi.Get(m.model);
                     {
-                        bool result = db.RemoveById(id);
-                        json = @"{""ok"":true,""total"":" + db.Count().ToString() + @",""remove"":" + result.ToString().ToLower() + @", ""item"":""" + id + @"""}";
+                        string id = string.Empty;
+                        List<string> lsOk = new List<string>() { };
+                        List<string> lsFail = new List<string>() { };
+                        for (int i = 0; i < ids.Length; i++)
+                        {
+                            id = ids[i];
+                            if (id.Length == 24)
+                            {
+                                bool result = db.RemoveById(id);
+                                if (result)
+                                    lsOk.Add(id);
+                                else
+                                    lsFail.Add(id);
+                            }
+                            else
+                                lsFail.Add(id);
+                            //json = JsonConvert.SerializeObject(new { ok = false, output = "The field _id should be 24 hex characters" });
+                        }
+                        json = @"{""ok"":true,""total"":" + db.Count().ToString() + @",""remove"":{""ok"":" + 
+                            JsonConvert.SerializeObject(lsOk) + @", ""fail"":" + JsonConvert.SerializeObject(lsFail) + @"}}";
                     }
                 }
-                else
-                    json = JsonConvert.SerializeObject(new { ok = false, output = "The field _id should be 24 hex characters" });
             }
             catch (Exception ex)
             {
@@ -111,9 +144,9 @@ namespace curl
         {
             if (string.IsNullOrEmpty(m.query_string))
                 return JsonConvert.SerializeObject(new { ok = false, total = 0, count = 0, msg = "The data of QueryString is NULL. It has format: model=test&action=select&skip=0&limit=10&_op.1=eq&_id.1=8499849689d044a7a5b0ffe9&_andor.1=and&_op.2=eq&___dc.2=20180303" });
-            
-            string json =JsonConvert.SerializeObject(new { ok = false, total = 0, count = 0, msg = "Can not find model [" + m.model + @"]" });
-            
+
+            string json = JsonConvert.SerializeObject(new { ok = false, total = 0, count = 0, msg = "Can not find model [" + m.model + @"]" });
+
             IDB db = dbi.Get(m.model);
             if (db != null)
                 json = db.Select(m.query_string);
@@ -123,7 +156,7 @@ namespace curl
 
         //http://127.0.0.1:8888?model=test&action=getbyid&_id=5744a604f1fa4b04a82cb94a
         public static string getbyid(Message m)
-        { 
+        {
             string json = "{}";
             try
             {
@@ -141,12 +174,13 @@ namespace curl
                 else
                     json = JsonConvert.SerializeObject(new { ok = false, output = "The field _id should be 24 hex characters" });
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 json = JsonConvert.SerializeObject(new { ok = false, output = ex.Message });
             }
             return json;
         }
-        
+
         public static string import_file(Message m)
         {
             string json = "{}";

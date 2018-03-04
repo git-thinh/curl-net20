@@ -34,7 +34,7 @@ namespace curl
                     string data = stream.ReadToEnd();
                     data = HttpUtility.UrlDecode(data);
 
-                    htm = dbi.Excute(data);
+                    htm = dbi.ExcutePOST(data);
 
                     bOutput = System.Text.Encoding.UTF8.GetBytes(htm);
                     Response.ContentType = "application/json; charset=utf-8";
@@ -66,7 +66,8 @@ namespace curl
                                 if (!string.IsNullOrEmpty(_qs)) // The character first is '?' then removed 
                                     _qs = _qs.Substring(1);
                                 else _qs = string.Empty;
-                                htm = dbi.Excute(new Message[] { new Message() { action = _action, model = _model, input = _input, query_string = _qs } });
+                                htm = dbi.Excute(new Message[] { new Message() { method = "GET", output = string.Empty,
+                                    action = _action, model = _model, input = _input, query_string = _qs } });
                                 #endregion
                             }
                             else
@@ -76,7 +77,26 @@ namespace curl
                                     case "/":
                                         #region
                                         var a = dbi.model_getAll();
-                                        bi.Append("<h1>List model: " + a.Length + "</h1><hr>");
+                                        string _help =
+                                            @"<h3>POST CREATE MODEL: {""model"":""test"", ""action"":""create"", ""data"":[{""key"":""value1"", ""key2"":""tiếng việt""}]}</h3>"
+                                            + @"<h3>POST INSERT ITEMS: {""model"":""test"", ""action"":""insert"", ""data"":[{""key"":""value1"", ""key2"":""tiếng việt""}]}</h3>"
+                                            + @"<h3>POST REMOVE ITEM BY ID: {""model"":""test"", ""action"":""removebyid"", ""data"":[""ID_ITEM1"",""ID_ITEM2""]}</h3>"
+                                            + "<h3>GET [GET BY ID]: ?model=XXX&action=getbyid&_id=ID_ITEM&skip=0&limit=10</h3>"
+                                            + "<h3>GET SELECT: ?model=XXX&action=select&... when &o.N = </h3>"
+                                            + "<b> EQ         </b>: Returns all documents that value are equals to value (=) has type number or string"
+                                            + "<br><b> LT         </b>: Returns all documents that value are less than value (<) has type number"
+                                            + "<br><b> LTE        </b>: Returns all documents that value are less than or equals value (<=) has type number"
+                                            + "<br><b> GT         </b>: Returns all document that value are greater than value (>) has type number"
+                                            + "<br><b> GTE        </b>: Returns all documents that value are greater than or equals value (>=) has type number"
+                                            + "<br><b> BETWEEN    </b>: Returns all document that values are between [number_start | number_end] values (BETWEEN) has type number"
+                                            + "<br><b> START_WITH </b>: Returns all documents that starts with value (LIKE) has type number or string"
+                                            + "<br><b> CONTAINS   </b>: Returns all documents that contains value (CONTAINS) has type number or string"
+                                            + "<br><b> NOT        </b>: Returns all documents that are not equals to value (not equals) has type number or string"
+                                            + "<br><b> IN_ARRAY   </b>: Returns all documents that has value in values array (IN) same as [ v1 | v2 | ... ] has type number or string"
+                                            + "<hr>";
+                                        bi.Append(_help);
+                                        bi.Append("<h1>Total model: " + a.Length + "</h1>");
+
                                         string _id = Guid.NewGuid().ToString().Replace("-", string.Empty).ToLower().Substring(0, 24);
                                         string _select = "model={0}&action=select&skip=0&limit=10&" +
                                             "f.1=_id&o.1=eq&v.1=" + _id +

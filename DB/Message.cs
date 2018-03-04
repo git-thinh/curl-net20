@@ -9,6 +9,7 @@ namespace LiteDB
     {
         //[JsonIgnore]
         public string query_string { set; get; }
+        public string method { set; get; }
 
         public string model { set; get; }
         public string action { set; get; }

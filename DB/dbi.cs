@@ -62,10 +62,11 @@ namespace LiteDB
             return 0;
         }
 
-        public static string Excute(string messageJson)
+        public static string ExcutePOST(string messageJson)
         {
             Console.WriteLine(messageJson);
             Message[] a = convertMessage(messageJson);
+            foreach (var m in a) m.method = "POST";
             return Excute(a);
         }
 
