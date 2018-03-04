@@ -45,6 +45,36 @@ namespace LiteDB
             });
         }
 
+        public UpdateResult UpdateReturnIDs(string collection, IEnumerable<BsonDocument> docs)
+        {
+            if (collection.IsNullOrWhiteSpace()) throw new ArgumentNullException(nameof(collection));
+            if (docs == null) throw new ArgumentNullException(nameof(docs));
+
+            return this.Transaction<UpdateResult>(collection, false, (col) =>
+            {
+                // no collection, no updates
+                if (col == null) return new UpdateResult() { };
+
+                var count = 0;
+
+                var rs = new UpdateResult();
+
+                foreach (var doc in docs)
+                {
+                    if (this.UpdateDocument(col, doc))
+                    {
+                        _trans.CheckPoint(); 
+                        count++;
+                        rs.listID_Success.Add(doc[_LITEDB_CONST.FIELD_ID]);
+                    }
+                    else
+                        rs.listID_Fail.Add(doc[_LITEDB_CONST.FIELD_ID]);
+                }
+
+                return rs;
+            });
+        }
+
         /// <summary>
         /// Implement internal update document
         /// </summary>

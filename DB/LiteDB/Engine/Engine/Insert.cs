@@ -9,6 +9,13 @@ namespace LiteDB
         /// <summary>
         /// Implements insert documents in a collection - returns _id value
         /// </summary>
+        public int InsertWithID(string collection, BsonDocument doc)
+        {
+            if (doc == null) throw new ArgumentNullException(nameof(doc));
+
+            return this.Insert(collection, new BsonDocument[] { doc }, BsonType.ObjectId);
+        }
+
         public BsonValue Insert(string collection, BsonDocument doc, BsonType autoId = BsonType.ObjectId)
         {
             if (doc == null) throw new ArgumentNullException(nameof(doc));

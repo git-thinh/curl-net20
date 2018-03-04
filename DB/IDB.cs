@@ -4,6 +4,18 @@ using System.Text;
 
 namespace LiteDB
 {
+    public class UpdateResult
+    {
+        public List<string> listID_Success { set; get; }
+        public List<string> listID_Fail { set; get; }
+
+        public UpdateResult()
+        {
+            listID_Fail = new List<string>() { };
+            listID_Success = new List<string>() { };
+        }
+    }
+
     interface IDB
     {
         string[] InsertBulk(IEnumerable<BsonDocument> docs);
@@ -15,5 +27,6 @@ namespace LiteDB
         bool isOpen();
         bool Close();
         bool Delete(string _id);
+        string UpdateByIDs(IEnumerable<BsonDocument> docs);
     }
 }

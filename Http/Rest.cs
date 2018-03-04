@@ -9,7 +9,7 @@ namespace curl
 {
     public class Rest
     {
-        // { "model":"test", "action":"create", "data":[{"key":"value1", "key2":"tiếng việt"}] }
+        // [{ "model":"test", "action":"create", "data":[{"key":"value1", "key2":"tiếng việt"}] }]
         public static string create(Message m)
         {
             if (m.method != "POST")
@@ -28,7 +28,7 @@ namespace curl
             return json;
         }
 
-        // { "model":"test", "action":"insert", "data":[{"key":"value1", "key2":"tiếng việt"}] }
+        // [{ "model":"test", "action":"insert", "data":[{"key":"value1", "key2":"tiếng việt"}] }]
         public static string insert(Message m)
         {
             if (m.method != "POST")
@@ -48,6 +48,23 @@ namespace curl
             }
 
             return json;
+        }
+
+        // [{ "model":"test", "action":"update", "data":[{"key":"value1", "key2":"tiếng việt"}] }]
+        public static string update(Message m)
+        {
+            if (m.method != "POST")
+                return JsonConvert.SerializeObject(new { ok = false, total = 0, count = 0, msg = "The method action [" + m.action + "] for model [" + m.model + "] must be POST" });
+
+            var ips = JsonConvert.DeserializeObject<JObject[]>(m.input);
+            if (ips.Length > 0)
+            {
+                IDB db = dbi.Get(m.model);
+                if (db != null)
+                    return db.UpdateByIDs(ips.convertBsonDocument(true));
+            }
+
+            return "{}";
         }
 
         //http://127.0.0.1:8888?model=test&action=getbyid&_id=5744a604f1fa4b04a82cb94a
@@ -91,7 +108,7 @@ namespace curl
                                 lsFail.Add(id);
                             //json = JsonConvert.SerializeObject(new { ok = false, output = "The field _id should be 24 hex characters" });
                         }
-                        json = @"{""ok"":true,""total"":" + db.Count().ToString() + @",""remove"":{""ok"":" + 
+                        json = @"{""ok"":true,""total"":" + db.Count().ToString() + @",""remove"":{""ok"":" +
                             JsonConvert.SerializeObject(lsOk) + @", ""fail"":" + JsonConvert.SerializeObject(lsFail) + @"}}";
                     }
                 }

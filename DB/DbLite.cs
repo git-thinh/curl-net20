@@ -92,13 +92,36 @@ namespace LiteDB
             return result;
         }
 
-        //public IEnumerable<BsonDocument> Select(string input)
-        //{
-        //    long k = Count();
-        //    if (!Opened || string.IsNullOrEmpty(input)) return new List<BsonDocument>() { };
-        //    return new List<BsonDocument>() { };
-        //}
+        public string UpdateByIDs(IEnumerable<BsonDocument> docs)
+        {
+            if (!Opened)
+                return JsonConvert.SerializeObject(new { ok = false, total = 0, count = 0, msg = "The model " + Model + " is closed" });
+            long _total = Count();
+            
+            var rs = new UpdateResult();
+            foreach (var doc in docs)
+            {
+                string id = doc[_LITEDB_CONST.FIELD_ID];
+                var _doc_old = FindById(id);
+                if (_doc_old != null && RemoveById(id) )
+                {
+                    int k = _engine.InsertWithID(_LITEDB_CONST.COLLECTION_NAME, doc);
+                    if (k == 1)
+                        rs.listID_Success.Add(id);
+                    else {
+                        _engine.InsertWithID(_LITEDB_CONST.COLLECTION_NAME, _doc_old);
+                        rs.listID_Fail.Add(id);
+                    }
+                }
+                else
+                    rs.listID_Fail.Add(id);
+            }
 
+            string json = @"{""ok"":true,""total"":" + _total.ToString() + @",""update"":{""ok"":" +
+                JsonConvert.SerializeObject(rs.listID_Success) + @", ""fail"":" + JsonConvert.SerializeObject(rs.listID_Fail) + @"}}";
+            return json;
+        }
+        
         private QueryBuilder convertQuery(string _field, string _operator, string _value)
         {
             _operator = _operator.ToLower();
@@ -114,6 +137,7 @@ namespace LiteDB
                     //_query = Query.All();
                     break;
                 case "eq":             //string field, BsonValue value)
+                    _ok = true;
                     _query = Query.EQ(_field, new BsonValue(_value));
                     break;
                 case "lt":             //string field, BsonValue value)

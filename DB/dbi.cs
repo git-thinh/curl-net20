@@ -64,10 +64,15 @@ namespace LiteDB
 
         public static string ExcutePOST(string messageJson)
         {
-            Console.WriteLine(messageJson);
-            Message[] a = convertMessage(messageJson);
-            foreach (var m in a) m.method = "POST";
-            return Excute(a);
+            try
+            {
+                Message[] a = convertMessage(messageJson);
+                foreach (var m in a) m.method = "POST";
+                return Excute(a);
+            }
+            catch (Exception ex) {
+                return JsonConvert.SerializeObject(new { ok = false, total = 0, count = 0, msg = "ExcutePOST: " + ex.Message });
+            }
         }
 
         public static string Excute(Message[] a)
