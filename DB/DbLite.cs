@@ -99,9 +99,58 @@ namespace LiteDB
         //    return new List<BsonDocument>() { };
         //}
 
-        private Query convertQuery()
+        private Query convertQuery(string _field, string _operator, string _value)
         {
-            return null;
+            Query _query = null;
+            switch (_operator)
+            {
+                case "all":            //int order = Ascending)
+                    _query = Query.All();
+                    break;
+                case "all_field":      //string field, int order = Ascending)
+                    _query = Query.All();
+                    break;
+                case "eq":             //string field, BsonValue value)
+                    _query = Query.All();
+                    break;
+                case "lt":             //string field, BsonValue value)
+                    _query = Query.All();
+                    break;
+                case "lte":            //string field, BsonValue value)
+                    _query = Query.All();
+                    break;
+                case "gt":             //string field, BsonValue value)
+                    _query = Query.All();
+                    break;
+                case "gte":            //string field, BsonValue value)
+                    _query = Query.All();
+                    break;
+                case "between":        //string field, BsonValue start, BsonValue end, bool startEquals = true, bool endEquals = true)
+                    _query = Query.All();
+                    break;
+                case "start_with":     //string field, string value)
+                    _query = Query.All();
+                    break;
+                case "contains":       //string field, string value)
+                    _query = Query.All();
+                    break;
+                case "not":            //string field, BsonValue value)
+                    _query = Query.All();
+                    break;
+                case "not_query":      //Query query, int order = Query.Ascending)
+                    _query = Query.All();
+                    break;
+                case "in_bson_array":  //string field, BsonArray value)
+                    _query = Query.All();
+                    break;
+                case "in_array":       //string field, params BsonValue[] values)
+                    _query = Query.All();
+                    break;
+                case "in_ienumerable": //string field, IEnumerable<BsonValue> values)      
+                    _query = Query.All();
+                    break;
+            }
+            return _query;
         }
 
         public string Select(string input)
@@ -109,8 +158,14 @@ namespace LiteDB
             long _total = Count();
             if (!Opened)
                 return JsonConvert.SerializeObject(new { ok = false, total = 0, count = 0, msg = "The model " + Model + " is closed" });
-            if (string.IsNullOrEmpty(input))
-                return JsonConvert.SerializeObject(new { ok = false, total = _total, count = 0, msg = "The data of QueryString is NULL. It has format: model=test&action=select&skip=0&limit=10&_op.1=eq&_id.1=8499849689d044a7a5b0ffe9&_andor.1=and&_op.2=eq&___dc.2=20180303" });
+            string msg_field_null = JsonConvert.SerializeObject(new
+            {
+                ok = false,
+                total = _total,
+                count = 0,
+                msg = "The data of QueryString is NULL. It has format: model=test&action=select&skip=0&limit=10&_op.1=eq&_id.1=8499849689d044a7a5b0ffe9&_andor.1=and&_op.2=eq&___dc.2=20180303"
+            });
+            if (string.IsNullOrEmpty(input)) return msg_field_null;
 
             //model=test&action=select&skip=0&limit=10&_op.1=eq&_id.1=b67cb5e92b6c45e0bab345b2&_andor.1=and&_op.2=eq&___dc.2=20180303
             input = "model=test&action=select&skip=0&limit=10&" +
@@ -133,13 +188,17 @@ namespace LiteDB
                 .Select(x => new QueryItem(x.key.Split('.')[0], int.Parse(x.key.Split('.')[1]), x.value, _or))
                 .ToArray();
 
-            int[] aCmd = ws.Select(x => x.cmd).Distinct().ToArray();
+            int[] aCmdOR = ws.Where(x => x.isOr).Select(x => x.cmd).Distinct().ToArray();
             List<Query> lsAnd = new List<Query>() { };
             List<Query> lsOr = new List<Query>() { };
-
-            for (int i = 0; i < aCmd.Length; i++) {
-                var ai = ws.Where(x => x.cmd == aCmd[i]).ToArray();
-
+            for (int i = 0; i < aCmdOR.Length; i++)
+            {
+                var ai = ws.Where(x => x.cmd == aCmdOR[i]).ToArray();
+                string _field = ai.Where(x => x.field == "f").Select(x => x.value).SingleOrDefault();
+                string _operator = ai.Where(x => x.field == "o").Select(x => x.value).SingleOrDefault();
+                string _value = ai.Where(x => x.field == "v").Select(x => x.value).SingleOrDefault();
+                if (string.IsNullOrEmpty(_field) || string.IsNullOrEmpty(_operator)) return msg_field_null;
+                lsOr.Add(convertQuery(_field, _operator, _value));
             }
 
             var jobject = JsonConvert.DeserializeObject<JObject>(input);
