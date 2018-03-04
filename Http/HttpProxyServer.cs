@@ -81,6 +81,8 @@ namespace curl
                                             @"<h3>POST CREATE MODEL: {""model"":""test"", ""action"":""create"", ""data"":[{""key"":""value1"", ""key2"":""tiếng việt""}]}</h3>"
                                             + @"<h3>POST INSERT ITEMS: {""model"":""test"", ""action"":""insert"", ""data"":[{""key"":""value1"", ""key2"":""tiếng việt""}]}</h3>"
                                             + @"<h3>POST REMOVE ITEM BY ID: {""model"":""test"", ""action"":""removebyid"", ""data"":[""ID_ITEM1"",""ID_ITEM2""]}</h3>"
+                                            + "<h3>GET COUNT: ?model=test&action=count</h3>"
+                                            + "<h3>GET FETCH: ?model=test&action=fetch&skip=0&limit=10</h3>"
                                             + "<h3>GET [GET BY ID]: ?model=XXX&action=getbyid&_id=ID_ITEM&skip=0&limit=10</h3>"
                                             + "<h3>GET SELECT: ?model=XXX&action=select&... when &o.N = </h3>"
                                             + "<b> EQ         </b>: Returns all documents that value are equals to value (=) has type number or string"

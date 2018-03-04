@@ -140,6 +140,7 @@ namespace curl
             return json;
         }
 
+        //http://localhost:8888/?model=test&action=select&skip=0&limit=10&f.1=_id&o.1=eq&v.1=d984a8710c734d9bac3e98ef&or=2.3&f.2=___dc&o.2=eq&v.2=20180303&f.3=___dc&o.3=eq&v.3=20180304
         public static string select(Message m)
         {
             if (string.IsNullOrEmpty(m.query_string))
