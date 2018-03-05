@@ -11,7 +11,12 @@ namespace LiteDB
         /// </summary>
         public IEnumerable<string> FindIDs(string collection, Query query)
         {
-            return this.GetIDs(collection, query);             
+            return this.GetIDs(collection, query);
+        }//end function
+
+        public IEnumerable<KeyValuePair<string, BsonDocument>> FindCacheIDs(string collection, Query query)
+        {
+            return this.GetCacheIDs(collection, query);
         }//end function
 
         /// <summary>

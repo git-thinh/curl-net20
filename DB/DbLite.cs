@@ -97,18 +97,19 @@ namespace LiteDB
             if (!Opened)
                 return JsonConvert.SerializeObject(new { ok = false, total = 0, count = 0, msg = "The model " + Model + " is closed" });
             long _total = Count();
-            
+
             var rs = new UpdateResult();
             foreach (var doc in docs)
             {
-                string id = doc[_LITEDB_CONST.FIELD_ID];
+                string id = doc[_LITEDB_CONST.FIELD_ID].AsString;
                 var _doc_old = FindById(id);
-                if (_doc_old != null && RemoveById(id) )
+                if (_doc_old != null && RemoveById(id))
                 {
                     int k = _engine.InsertWithID(_LITEDB_CONST.COLLECTION_NAME, doc);
                     if (k == 1)
                         rs.listID_Success.Add(id);
-                    else {
+                    else
+                    {
                         _engine.InsertWithID(_LITEDB_CONST.COLLECTION_NAME, _doc_old);
                         rs.listID_Fail.Add(id);
                     }
@@ -121,7 +122,7 @@ namespace LiteDB
                 JsonConvert.SerializeObject(rs.listID_Success) + @", ""fail"":" + JsonConvert.SerializeObject(rs.listID_Fail) + @"}}";
             return json;
         }
-        
+
         private QueryBuilder convertQuery(string _field, string _operator, string _value)
         {
             _operator = _operator.ToLower();
@@ -137,8 +138,32 @@ namespace LiteDB
                     //_query = Query.All();
                     break;
                 case "eq":             //string field, BsonValue value)
-                    _ok = true;
-                    _query = Query.EQ(_field, new BsonValue(_value));
+                    if (_value.IsNumeric())
+                    {
+                        if (_value.IndexOf('.') != -1)
+                        {
+                            double _d = 0;
+                            if (double.TryParse(_value, out _d))
+                            {
+                                _ok = true;
+                                _query = Query.EQ(_field, new BsonValue(_d));
+                            }
+                        }
+                        else
+                        {
+                            int _val = 0;
+                            if (int.TryParse(_value, out _val))
+                            {
+                                _ok = true;
+                                _query = Query.EQ(_field, new BsonValue(_val));
+                            }
+                        }
+                    }
+                    else
+                    {
+                        _ok = true;
+                        _query = Query.EQ(_field, new BsonValue(_value));
+                    }
                     break;
                 case "lt":             //string field, BsonValue value)
                     _value = _value.Trim();
@@ -313,34 +338,44 @@ namespace LiteDB
                     return JsonConvert.SerializeObject(new { ok = false, total = _total, count = 0, msg = _query.Msg });
             }
 
-            string[] idOr = new string[] { }, idAnd = new string[] { };
-            switch (idOr.Length)
+            Dictionary<string, BsonDocument> dicStore = new Dictionary<string, BsonDocument>() { }; 
+            IEnumerable<KeyValuePair<string, BsonDocument>> rsFind;
+
+            switch (lsOr.Count)
             {
                 case 0:
                     break;
                 case 1:
-                    idOr = _engine.FindIDs(_LITEDB_CONST.COLLECTION_NAME, lsAnd[0]).ToArray();
+                    rsFind = _engine.FindCacheIDs(_LITEDB_CONST.COLLECTION_NAME, lsOr[0]).ToArray();
+                    foreach (var kv in rsFind)
+                        if (!dicStore.ContainsKey(kv.Key))
+                            dicStore.Add(kv.Key, kv.Value);
                     break;
                 default:
-                    idOr = _engine.FindIDs(_LITEDB_CONST.COLLECTION_NAME, Query.And(lsAnd.ToArray())).ToArray();
+                    rsFind = _engine.FindCacheIDs(_LITEDB_CONST.COLLECTION_NAME, Query.Or(lsOr.ToArray())).ToArray();
+                    foreach (var kv in rsFind)
+                        if (!dicStore.ContainsKey(kv.Key))
+                            dicStore.Add(kv.Key, kv.Value);
                     break;
             }
 
-            switch (idAnd.Length)
+            switch (lsAnd.Count)
             {
                 case 0:
                     break;
                 case 1:
-                    idAnd = _engine.FindIDs(_LITEDB_CONST.COLLECTION_NAME, lsOr[0]).ToArray();
+                    rsFind = _engine.FindCacheIDs(_LITEDB_CONST.COLLECTION_NAME, lsAnd[0]).ToArray();
+                    foreach (var kv in rsFind)
+                        if (!dicStore.ContainsKey(kv.Key))
+                            dicStore.Add(kv.Key, kv.Value);
                     break;
                 default:
-                    idAnd = _engine.FindIDs(_LITEDB_CONST.COLLECTION_NAME, Query.Or(lsOr.ToArray())).ToArray();
+                    rsFind = _engine.FindCacheIDs(_LITEDB_CONST.COLLECTION_NAME, Query.And(lsAnd.ToArray())).ToArray();
+                    foreach (var kv in rsFind)
+                        if (!dicStore.ContainsKey(kv.Key))
+                            dicStore.Add(kv.Key, kv.Value);
                     break;
             }
-
-            List<string> listID = new List<string>(idAnd);
-            listID.AddRange(idOr);
-            listID = listID.Distinct().ToList();
 
             var jobject = a.Where(x => !x.key.Contains("."))
                 .GroupBy(x => x.key).Select(x => x.First())
@@ -358,12 +393,18 @@ namespace LiteDB
             if (_skip < 0) _skip = _LITEDB_CONST._SKIP;
             if (_limit <= 0) _limit = _LITEDB_CONST._LIMIT;
 
-            BsonValue[] idRs = listID.Skip(_skip).Take(_limit).Select(x => new BsonValue(x)).ToArray();
-            var result = _engine
-                .Find(_LITEDB_CONST.COLLECTION_NAME, Query.In(_LITEDB_CONST.FIELD_ID, idRs))
-                .Select(x => x.toJson).ToArray();
+            string[] allID = dicStore.Keys.ToArray();
+            string[] idRs = allID.Skip(_skip).Take(_limit).ToArray();
+            List<string> result = new List<string>();
+            foreach (string id in idRs)
+                result.Add(dicStore[id].toJson);
 
-            return @"{""ok"":true,""total"":" + _total.ToString() + @",""count"":" + result.Length.ToString() + @",""items"":[" + string.Join(",", result) + @"]}";
+            //var result = _engine
+            //    //.Find(_LITEDB_CONST.COLLECTION_NAME, Query.In(_LITEDB_CONST.FIELD_ID, idRs))
+            //    .Find(_LITEDB_CONST.COLLECTION_NAME, Query.Where(_LITEDB_CONST.FIELD_ID, _id => listID.IndexOf(_id) != -1))
+            //    .Select(x => x.toJson).ToArray();
+
+            return @"{""ok"":true,""total"":" + _total.ToString() + @",""count"":" + result.Count.ToString() + @",""items"":[" + string.Join(",", result.ToArray()) + @"]}";
         }
 
         public IEnumerable<BsonDocument> Fetch(long skip, long limit)

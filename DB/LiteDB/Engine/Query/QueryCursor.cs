@@ -17,6 +17,7 @@ namespace LiteDB
 
         public List<BsonDocument> Documents { get; private set; }
         public List<string> DocumentIDs { get; private set; }
+        public Dictionary<string, BsonDocument> CacheIDs { get; private set; }
         public bool HasMore { get; private set; }
 
         public QueryCursor(Query query)
@@ -26,10 +27,11 @@ namespace LiteDB
             _limit = -1;
             _position = 0;
             _nodes = null;
-
+            
             this.HasMore = true;
             this.Documents = new List<BsonDocument>();
             this.DocumentIDs = new List<string>();
+            this.CacheIDs = new Dictionary<string, BsonDocument>(){ };
         }
 
         public QueryCursor(Query query, int skip, int limit)
@@ -43,6 +45,13 @@ namespace LiteDB
             this.HasMore = true;
             this.Documents = new List<BsonDocument>();
             this.DocumentIDs = new List<string>();
+            this.CacheIDs = new Dictionary<string, BsonDocument>(){ };
+        }
+
+        private void Clean() {
+            this.Documents.Clear();
+            this.DocumentIDs.Clear();
+            this.CacheIDs.Clear();
         }
 
         /// <summary>
@@ -65,11 +74,10 @@ namespace LiteDB
         /// <summary>
         /// Fetch documents from enumerator and add to buffer. If cache recycle, stop read to execute in another read
         /// </summary>
-        public void FetchIDs(TransactionService trans, DataService data, BsonReader bsonReader)
+        public void FetchCacheIDs(TransactionService trans, DataService data, BsonReader bsonReader)
         {
             // empty document buffer
-            this.Documents.Clear();
-            this.DocumentIDs.Clear();
+            this.Clean();
 
             // while until must cache not recycle
             while (trans.CheckPoint() == false)
@@ -79,7 +87,7 @@ namespace LiteDB
 
                 // if finish, exit loop
                 if (this.HasMore == false) return;
-                
+
                 // get current node
                 var node = _nodes.Current;
 
@@ -91,13 +99,53 @@ namespace LiteDB
                 if (_query.UseFilter)
                 {
                     // execute query condition here - if false, do not add on final results
-                    if (_query.FilterDocument(doc) == false) continue;                    
+                    if (_query.FilterDocument(doc) == false) continue;
                 }
 
                 // increment position cursor
                 _position++;
-                
-                this.DocumentIDs.Add(doc[_LITEDB_CONST.FIELD_ID]);
+
+                string id = doc[_LITEDB_CONST.FIELD_ID].AsString;
+                if (!this.CacheIDs.ContainsKey(id))
+                    this.CacheIDs.Add(id, doc);
+            }
+        }
+
+        /// <summary>
+        /// Fetch documents from enumerator and add to buffer. If cache recycle, stop read to execute in another read
+        /// </summary>
+        public void FetchIDs(TransactionService trans, DataService data, BsonReader bsonReader)
+        {
+            // empty document buffer
+            this.Clean();
+
+            // while until must cache not recycle
+            while (trans.CheckPoint() == false)
+            {
+                // read next node
+                this.HasMore = _nodes.MoveNext();
+
+                // if finish, exit loop
+                if (this.HasMore == false) return;
+
+                // get current node
+                var node = _nodes.Current;
+
+                // read document from data block
+                var buffer = data.Read(node.DataBlock);
+                var doc = bsonReader.Deserialize(buffer).AsDocument;
+
+                // if need run in full scan, execute full scan and test return
+                if (_query.UseFilter)
+                {
+                    // execute query condition here - if false, do not add on final results
+                    if (_query.FilterDocument(doc) == false) continue;
+                }
+
+                // increment position cursor
+                _position++;
+
+                this.DocumentIDs.Add(doc[_LITEDB_CONST.FIELD_ID].AsString);
             }
         }
 
@@ -107,8 +155,7 @@ namespace LiteDB
         public void Fetch(TransactionService trans, DataService data, BsonReader bsonReader)
         {
             // empty document buffer
-            this.Documents.Clear();
-            this.DocumentIDs.Clear();
+            this.Clean();
 
             // while until must cache not recycle
             while (trans.CheckPoint() == false)

@@ -65,10 +65,10 @@ namespace LiteDB
                     {
                         _trans.CheckPoint(); 
                         count++;
-                        rs.listID_Success.Add(doc[_LITEDB_CONST.FIELD_ID]);
+                        rs.listID_Success.Add(doc[_LITEDB_CONST.FIELD_ID].AsString);
                     }
                     else
-                        rs.listID_Fail.Add(doc[_LITEDB_CONST.FIELD_ID]);
+                        rs.listID_Fail.Add(doc[_LITEDB_CONST.FIELD_ID].AsString);
                 }
 
                 return rs;

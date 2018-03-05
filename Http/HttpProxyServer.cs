@@ -112,7 +112,6 @@ namespace curl
                                             bi.Append("<a href='?model=" + mi + "&action=fetch&skip=0&limit=10' target='_new'>fetch</a> | ");
                                             bi.Append("<a href='?model=" + mi + "&action=getbyid&_id=" + _id + "' target='_new'>getbyid</a> | ");
                                             bi.Append("<a href='?" + string.Format(_select, mi, DateTime.Now.AddDays(-1).ToString("yyyyMMdd"), DateTime.Now.ToString("yyyyMMdd")) + "' target='_new'>select</a> | ");
-                                            bi.Append("<a href='?model=" + mi + "&action=removebyid&_id=" + _id + "' target='_new'>removebyid</a> | ");
                                             bi.Append("</h3>");
                                         }
                                         htm = bi.ToString();

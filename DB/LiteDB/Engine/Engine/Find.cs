@@ -6,6 +6,60 @@ namespace LiteDB
 {
     public partial class LiteEngine
     {
+        public IEnumerable<KeyValuePair<string,BsonDocument>> GetCacheIDs(string collection, Query query)
+        {
+            if (collection.IsNullOrWhiteSpace()) throw new ArgumentNullException(nameof(collection));
+            if (query == null) throw new ArgumentNullException(nameof(query));
+
+            _log.Write(Logger.COMMAND, "query documents in '{0}' => {1}", collection, query);
+
+            using (var cursor = new QueryCursor(query))
+            {
+                using (_locker.Read())
+                {
+                    // get my collection page
+                    var col = this.GetCollectionPage(collection, false);
+
+                    // no collection, no documents
+                    if (col == null) yield break;
+
+                    // get nodes from query executor to get all IndexNodes
+                    cursor.Initialize(query.Run(col, _indexer).GetEnumerator());
+
+                    _log.Write(Logger.QUERY, "{0} :: {1}", collection, query);
+
+                    // fill buffer with documents 
+                    cursor.FetchCacheIDs(_trans, _data, _bsonReader);
+                }
+
+                // returing first documents in buffer
+                foreach (var kv in cursor.CacheIDs) yield return kv;
+
+                // if still documents to read, continue
+                while (cursor.HasMore)
+                {
+                    // lock read mode
+                    using (var l = _locker.Read())
+                    {
+                        // if file was changed, re-run query and skip already returned documents
+                        if (l.Changed)
+                        {
+                            var col = this.GetCollectionPage(collection, false);
+
+                            if (col == null) yield break;
+
+                            cursor.ReQuery(query.Run(col, _indexer).GetEnumerator());
+                        }
+
+                        cursor.FetchCacheIDs(_trans, _data, _bsonReader);
+                    }
+
+                    // return documents from buffer
+                    foreach (var kv in cursor.CacheIDs) yield return kv;
+                }
+            }
+        }//end function
+
         public IEnumerable<string> GetIDs(string collection, Query query)
         {
             if (collection.IsNullOrWhiteSpace()) throw new ArgumentNullException(nameof(collection));
