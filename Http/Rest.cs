@@ -4,6 +4,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using LiteDB;
 using System.Collections.Generic;
+using System.IO;
 
 namespace curl
 {
@@ -205,5 +206,21 @@ namespace curl
             return json;
         }
 
+
+
+        //http://127.0.0.1:8888/?model=&action=file_browser&ext=html&path=C:\nginx\admin\module
+        public static string file_browser(Message m)
+        {
+            var jobject = JsonConvert.DeserializeObject<JObject>(m.input); 
+            string ext = jobject.getValue("ext");
+            string path = jobject.getValue("path");
+             
+            string exts = "*.*";
+            if (!string.IsNullOrEmpty(ext)) exts = string.Join("|", ext.Split('|').Select(x => "*." + x).ToArray());
+            string[] a = new string[] { };
+            if (Directory.Exists(path)) a = Directory.GetFiles(path, exts).Select(x => Path.GetFileName(x)).ToArray();
+
+            return @"{""ok"":false,""items"":" + JsonConvert.SerializeObject(a) + @",""count"":" + a.Length+"}";
+        }
     }
 }
