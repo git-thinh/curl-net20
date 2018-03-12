@@ -217,10 +217,20 @@ namespace curl
              
             string exts = "*.*";
             if (!string.IsNullOrEmpty(ext)) exts = string.Join("|", ext.Split('|').Select(x => "*." + x).ToArray());
-            string[] a = new string[] { };
-            if (Directory.Exists(path)) a = Directory.GetFiles(path, exts).Select(x => Path.GetFileName(x)).ToArray();
+            string[] files = new string[] { };
+            dirs[] dirs = new dirs[] { };
+            if (Directory.Exists(path))
+            {
+                files = Directory.GetFiles(path, exts).Select(x => Path.GetFileName(x)).ToArray();
+                dirs = Directory.GetDirectories(path).Select(x => new dirs() { name = Path.GetFileName(x), count = Directory.GetFiles(x, exts).Length }).ToArray();
+            }
 
-            return @"{""ok"":false,""items"":" + JsonConvert.SerializeObject(a) + @",""count"":" + a.Length+"}";
+            return @"{""ok"":false,""root"":" + JsonConvert.SerializeObject(path) + @",""dirs"":" + JsonConvert.SerializeObject(dirs) + @",""files"":" + JsonConvert.SerializeObject(files) + @",""count"":" + files.Length+"}";
         }
+    }
+    public class dirs
+    {
+        public string name { get; set; }
+        public int count { get; set; }
     }
 }
