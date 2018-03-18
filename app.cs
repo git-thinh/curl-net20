@@ -105,9 +105,14 @@ namespace curl
             var input = Console.ReadLine();
             while (input != "exit")
             {
-                foreach (var socket in allSockets)
+                if (input == "cls")
+                    Console.Clear();
+                else
                 {
-                    socket.Send(input);
+                    foreach (var socket in allSockets)
+                    {
+                        socket.Send(input);
+                    }
                 }
                 input = Console.ReadLine();
             }
