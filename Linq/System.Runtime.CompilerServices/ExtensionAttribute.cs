@@ -22,11 +22,20 @@
 
 using System;
 
+//namespace System.Runtime.CompilerServices
+//{
+
+//    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class | AttributeTargets.Assembly)]
+//    public sealed class ExtensionAttribute : Attribute
+//    {
+//    }
+//}
+
 namespace System.Runtime.CompilerServices
 {
-
-    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class | AttributeTargets.Assembly)]
-    public sealed class ExtensionAttribute : Attribute
+    [AttributeUsage(AttributeTargets.Assembly | AttributeTargets.Class | AttributeTargets.Method,
+        Inherited = false, AllowMultiple = false)]
+    public class ExtensionAttribute : Attribute
     {
     }
 }

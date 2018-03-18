@@ -9,6 +9,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using LiteDB;
+using Fleck2;
+using Fleck2.Interfaces;
 
 namespace curl
 {
@@ -66,13 +68,55 @@ namespace curl
 
             dbi.Init();
 
-            //http://127.0.0.1:8888/http_-_genk.vn/ai-nay-da-danh-bai-20-luat-su-hang-dau-nuoc-my-trong-linh-vuc-ma-ho-gioi-nhat-20180227012111793.chn?_format=text
-            //HttpServer Server = null;
-            Server = new HttpProxyServer();
-            Server.Start(uri);
-            //Server.Stop();
-            //Console.WriteLine(uri);
-            Console.ReadLine();
+            //////http://127.0.0.1:8888/http_-_genk.vn/ai-nay-da-danh-bai-20-luat-su-hang-dau-nuoc-my-trong-linh-vuc-ma-ho-gioi-nhat-20180227012111793.chn?_format=text
+            //////HttpServer Server = null;
+            ////Server = new HttpProxyServer();
+            ////Server.Start(uri);
+            //////Server.Stop();
+            //////Console.WriteLine(uri);
+            ////Console.ReadLine();
+
+
+            //FleckLog.Level = LogLevel.Debug;
+            FleckLog.Level = LogLevel.Info;
+            var allSockets = new List<IWebSocketConnection>();
+            var server = new WebSocketServer("ws://localhost:"+ m_Port.ToString());
+            server.Start(socket =>
+            {
+                socket.OnOpen = () =>
+                {
+                    Console.WriteLine("Open!");
+                    allSockets.Add(socket);
+                };
+                socket.OnClose = () =>
+                {
+                    Console.WriteLine("Close!");
+                    allSockets.Remove(socket);
+                };
+                socket.OnMessage = message =>
+                {
+                    Console.WriteLine(message);
+                    allSockets.ForEach(s => s.Send("Echo: " + message));
+                };
+            });
+
+            //Process.Start("client.html");
+
+            var input = Console.ReadLine();
+            while (input != "exit")
+            {
+                foreach (var socket in allSockets)
+                {
+                    socket.Send(input);
+                }
+                input = Console.ReadLine();
+            }
+
+
+
+
+
+
         }
 
         public static void Stop()
