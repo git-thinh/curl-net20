@@ -34,8 +34,8 @@ namespace Fleck2
         /// <param name="endMethod"></param>
         /// <param name="resultCallback"> </param>
         /// <returns></returns>
-        public void HandleAsync<TResult>(Fleck2Extensions.Func<AsyncCallback, object, IAsyncResult> beginMethod, 
-            Fleck2Extensions.Func<IAsyncResult, TResult> endMethod, Action<SocketResult> resultCallback)
+        public void HandleAsync<TResult>(Func<AsyncCallback, object, IAsyncResult> beginMethod, 
+            Func<IAsyncResult, TResult> endMethod, Action<SocketResult> resultCallback)
         {
             DoAsyncTask(() => beginMethod(result => DoAsyncTask(() => 
                 resultCallback(new SocketResult(endMethod(result))), resultCallback), null), resultCallback);
@@ -48,8 +48,8 @@ namespace Fleck2
         /// <param name="endMethod"></param>
         /// <param name="resultCallback"> </param>
         /// <returns></returns>
-        public void HandleAsync(Fleck2Extensions.Func<AsyncCallback, object, IAsyncResult> beginMethod,
-            Fleck2Extensions.Func<IAsyncResult, ICancellationToken, ISocket> endMethod, Action<SocketResult> resultCallback)
+        public void HandleAsync(Func<AsyncCallback, object, IAsyncResult> beginMethod,
+            Func<IAsyncResult, ICancellationToken, ISocket> endMethod, Action<SocketResult> resultCallback)
         {
             DoAsyncTask(() => beginMethod(result => DoAsyncTask(() => 
                 resultCallback(new SocketResult(endMethod(result, Token))), resultCallback), null), resultCallback);
@@ -63,8 +63,8 @@ namespace Fleck2
         /// <param name="endMethod"></param>
         /// <param name="resultCallback"> </param>
         /// <returns></returns>
-        public void HandleAsyncVoid<T>(Fleck2Extensions.Func<AsyncCallback, object, T> beginMethod,
-            Fleck2Extensions.Action<T> endMethod, Action<SocketResult> resultCallback)
+        public void HandleAsyncVoid<T>(Func<AsyncCallback, object, T> beginMethod,
+            Action<T> endMethod, Action<SocketResult> resultCallback)
         {
             DoAsyncTask(() => beginMethod(result => DoAsyncTask(() =>
                 {
@@ -78,7 +78,7 @@ namespace Fleck2
         /// </summary>
         /// <param name="unitOfWork"></param>
         /// <param name="resultCallback"> </param>
-        private static void DoAsyncTask(Fleck2Extensions.Action unitOfWork, Action<SocketResult> resultCallback)
+        private static void DoAsyncTask(Action unitOfWork, Action<SocketResult> resultCallback)
         {
             ThreadPool.QueueUserWorkItem(delegate
                 {

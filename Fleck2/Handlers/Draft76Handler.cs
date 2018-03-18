@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Text;
 using Fleck2.Interfaces;
+using System.Linq;
 
 namespace Fleck2.Handlers
 {

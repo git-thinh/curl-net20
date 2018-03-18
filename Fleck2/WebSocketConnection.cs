@@ -2,14 +2,15 @@
 using System.Collections.Generic;
 using System.IO;
 using Fleck2.Interfaces;
+using System.Linq;
 
 namespace Fleck2
 {
     public class WebSocketConnection : IWebSocketConnection
     {
         public WebSocketConnection(ISocket socket, Action<IWebSocketConnection> initialize, 
-            Fleck2Extensions.Func<byte[], WebSocketHttpRequest> parseRequest, 
-            Fleck2Extensions.Func<WebSocketHttpRequest, IHandler> handlerFactory)
+            Func<byte[], WebSocketHttpRequest> parseRequest, 
+            Func<WebSocketHttpRequest, IHandler> handlerFactory)
         {
             Socket = socket;
             OnOpen = () => { };
@@ -25,14 +26,14 @@ namespace Fleck2
         public ISocket Socket { get; set; }
 
         private readonly Action<IWebSocketConnection> _initialize;
-        private readonly Fleck2Extensions.Func<WebSocketHttpRequest, IHandler> _handlerFactory;
-        readonly Fleck2Extensions.Func<byte[], WebSocketHttpRequest> _parseRequest;
+        private readonly Func<WebSocketHttpRequest, IHandler> _handlerFactory;
+        readonly Func<byte[], WebSocketHttpRequest> _parseRequest;
         public IHandler Handler { get; set; }
         private bool _closed;
         private const int ReadSize = 1024 * 4;
 
-        public Fleck2Extensions.Action OnOpen { get; set; }
-        public Fleck2Extensions.Action OnClose { get; set; }
+        public Action OnOpen { get; set; }
+        public Action OnClose { get; set; }
         public Action<string> OnMessage { get; set; }
         public Action<byte[]> OnBinary { get; set; }
         public Action<Exception> OnError { get; set; }
@@ -174,7 +175,7 @@ namespace Fleck2
             }
         }
 
-        private void SendBytes(byte[] bytes, Fleck2Extensions.Action callback = null)
+        private void SendBytes(byte[] bytes, Action callback = null)
         {
             Socket.Send(bytes, () =>
             {

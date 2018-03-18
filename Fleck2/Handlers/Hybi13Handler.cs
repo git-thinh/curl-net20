@@ -4,12 +4,13 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 using Fleck2.Interfaces;
+using System.Linq;
 
 namespace Fleck2.Handlers
 {
     public static class Hybi13Handler
     {
-        public static IHandler Create(WebSocketHttpRequest request, Action<string> onMessage, Fleck2Extensions.Action onClose, Action<byte[]> onBinary)
+        public static IHandler Create(WebSocketHttpRequest request, Action<string> onMessage, Action onClose, Action<byte[]> onBinary)
         {
             var readState = new ReadState();
             return new ComposableHandler
@@ -46,7 +47,7 @@ namespace Fleck2.Handlers
             return memoryStream.ToArray();
         }
         
-        public static void ReceiveData(List<byte> data, ReadState readState, Fleck2Extensions.Action<FrameType, byte[]> processFrame)
+        public static void ReceiveData(List<byte> data, ReadState readState, Action<FrameType, byte[]> processFrame)
         {
             while (data.Count >= 2)
             {
@@ -119,7 +120,7 @@ namespace Fleck2.Handlers
             }
         }
         
-        public static void ProcessFrame(FrameType frameType, byte[] data, Action<string> onMessage, Fleck2Extensions.Action onClose, Action<byte[]> onBinary)
+        public static void ProcessFrame(FrameType frameType, byte[] data, Action<string> onMessage, Action onClose, Action<byte[]> onBinary)
         {
             switch (frameType)
             {
@@ -135,7 +136,7 @@ namespace Fleck2.Handlers
                 }
                 
                 if (data.Length > 2)
-                    ReadUtf8PayloadData(data.Skip(2));
+                    ReadUtf8PayloadData(data.Skip(2).ToArray());
                 
                 onClose();
                 break;

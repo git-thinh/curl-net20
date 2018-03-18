@@ -7,6 +7,9 @@ namespace LiteDB
 {
     public class Message
     {
+        public string id { set; get; }
+        public string callback { set; get; }
+
         //[JsonIgnore]
         public string query_string { set; get; }
         public string method { set; get; }

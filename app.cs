@@ -68,39 +68,40 @@ namespace curl
 
             dbi.Init();
 
-            //////http://127.0.0.1:8888/http_-_genk.vn/ai-nay-da-danh-bai-20-luat-su-hang-dau-nuoc-my-trong-linh-vuc-ma-ho-gioi-nhat-20180227012111793.chn?_format=text
-            //////HttpServer Server = null;
-            ////Server = new HttpProxyServer();
-            ////Server.Start(uri);
-            //////Server.Stop();
-            //////Console.WriteLine(uri);
-            ////Console.ReadLine();
-
-
+            msgProcess.Init();
             //FleckLog.Level = LogLevel.Debug;
             FleckLog.Level = LogLevel.Info;
             var allSockets = new List<IWebSocketConnection>();
-            var server = new WebSocketServer("ws://localhost:"+ m_Port.ToString());
+            var server = new WebSocketServer("ws://localhost:8889");
             server.Start(socket =>
             {
                 socket.OnOpen = () =>
                 {
-                    Console.WriteLine("Open!");
-                    allSockets.Add(socket);
+                    msgProcess.Join(socket);
+                    socket.Send("ID=" + socket.ConnectionInfo.Id.ToString());
                 };
                 socket.OnClose = () =>
                 {
-                    Console.WriteLine("Close!");
-                    allSockets.Remove(socket);
+                    //Console.WriteLine("Close!");
+                    //allSockets.Remove(socket);
                 };
                 socket.OnMessage = message =>
                 {
-                    Console.WriteLine(message);
-                    allSockets.ForEach(s => s.Send("Echo: " + message));
+                    long id = msgProcess.Push(socket.ConnectionInfo.Id.ToString(), message);
+                    //socket.Send(id.ToString());
                 };
             });
 
             //Process.Start("client.html");
+
+            //http://127.0.0.1:8888/http_-_genk.vn/ai-nay-da-danh-bai-20-luat-su-hang-dau-nuoc-my-trong-linh-vuc-ma-ho-gioi-nhat-20180227012111793.chn?_format=text
+            //HttpServer Server = null;
+            Server = new HttpProxyServer();
+            Server.Start(uri);
+            //Server.Stop();
+            //Console.WriteLine(uri);
+            ////Console.ReadLine();
+
 
             var input = Console.ReadLine();
             while (input != "exit")
