@@ -8,7 +8,19 @@ using Fleck2.Interfaces;
 using Newtonsoft.Json;
 
 namespace curl
-{
+{ 
+    public class dir
+    {
+        public string name { get; set; }
+        public int count { get; set; }
+    }
+
+    public class file
+    {
+        public string name { get; set; }
+        public string title { get; set; }
+    }
+
     public class MSG
     {
         public bool ok { set; get; } = false;
@@ -16,10 +28,11 @@ namespace curl
         public string id { set; get; }
         public string selector { set; get; }
         public string callback { set; get; }
-
         public string action { set; get; }
 
+        public Dictionary<string, string> config { set; get; }
         public Dictionary<string, string> data { set; get; }
+
         public string result { set; get; }
     }
 
@@ -100,18 +113,18 @@ namespace curl
                         _folder = m.data["folder"]; 
                         _root = m.data["root"];
 
-                        if (string.IsNullOrEmpty(_root) || !Directory.Exists(_root))
+                        if (string.IsNullOrEmpty(_root))
                             _root = root;
 
-                        string path = Path.Combine(_root, _folder);
+                        string path = _root; //Path.Combine(_root, _folder);
                         if (Directory.Exists(path))
                         {
                             string exts = "*.*";
                             if (!string.IsNullOrEmpty(_ext)) exts = string.Join("|", _ext.Split('|').Select(x => "*." + x).ToArray());
-                            string[] files = new string[] { };
-                            dirs[] dirs = new dirs[] { };
-                            files = Directory.GetFiles(path, exts).Select(x => Path.GetFileName(x)).ToArray();
-                            dirs = Directory.GetDirectories(path).Select(x => new dirs() { name = Path.GetFileName(x), count = Directory.GetFiles(x, exts).Length }).ToArray();
+                            file[] files = new file[] { };
+                            dir[] dirs = new dir[] { };
+                            files = Directory.GetFiles(path, exts).Select(x => new file() { name = Path.GetFileName(x), title = File.ReadAllLines(x)[0] }).ToArray();
+                            dirs = Directory.GetDirectories(path).Select(x => new dir() { name = Path.GetFileName(x), count = Directory.GetFiles(x, exts).Length }).ToArray();
                             result = @"{""root"":" + JsonConvert.SerializeObject(path) + @",""dirs"":" + JsonConvert.SerializeObject(dirs) + @",""files"":" + 
                                 JsonConvert.SerializeObject(files) + @",""count"":" + files.Length + "}";
                             m.ok = true;
