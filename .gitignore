@@ -1,0 +1,17 @@
+
+curl.csproj.user
+bin/Debug/test.db
+bin/Debug/curl.pdb
+obj/Debug/curl.csproj.CoreCompileInputs.cache
+obj/Debug/curl.csproj.FileListAbsolute.txt
+obj/Debug/curl.csprojResolveAssemblyReference.cache
+obj/Debug/curl.pdb
+obj/Debug/DesignTimeResolveAssemblyReferencesInput.cache
+obj/Debug/curl.exe
+bin/Debug/curl.exe
+.vs/curl/v15/Server/sqlite3/storage.ide-wal
+.vs/curl/v15/Server/sqlite3/storage.ide-shm
+.vs/curl/v15/Server/sqlite3/storage.ide
+.vs/curl/v15/Server/sqlite3/db.lock
+.vs/curl/v15/.suo
+.gitattributes

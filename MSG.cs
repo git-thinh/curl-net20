@@ -19,6 +19,7 @@ namespace curl
 
         public string action { set; get; }
 
+        public Dictionary<string, string> config { set; get; }
         public Dictionary<string, string> data { set; get; }
         public string result { set; get; }
     }
