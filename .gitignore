@@ -5,3 +5,8 @@ obj/Debug/curl.csproj.FileListAbsolute.txt
 obj/Debug/curl.exe
 obj/Debug/curl.pdb
 obj/Debug/DesignTimeResolveAssemblyReferencesInput.cache
+obj/Debug/curl.csprojResolveAssemblyReference.cache
+bin/Debug/curl.vshost.exe
+bin/Debug/curl.pdb
+bin/Debug/curl.exe
+bin/Debug/curl.vshost.exe.manifest
