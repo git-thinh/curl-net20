@@ -6,6 +6,7 @@ using System.Linq;
 using Fleck2;
 using Fleck2.Interfaces;
 using Newtonsoft.Json;
+using System.Speech.Synthesis;
 
 namespace curl
 { 
@@ -99,6 +100,7 @@ namespace curl
             }
         }
 
+
         public static void Execute(IWebSocketConnection socket, MSG m)
         {
             m.ok = false;
@@ -106,6 +108,7 @@ namespace curl
             switch (m.action)
             {
                 case "LOAD_SUB_DIR_FILE":
+                    #region
                     string _ext = "", _folder = "", _root = "";
                     if (m.data.ContainsKey("ext") && m.data.ContainsKey("folder") && m.data.ContainsKey("root"))
                     {
@@ -137,6 +140,7 @@ namespace curl
                         m.result = "Field [data] must contain paramenter: ext, folder, path be not NULL.";
                     }
                     break;
+                #endregion
                 default:
                     m.result = "Cannot find action.";
                     break;
