@@ -14,6 +14,49 @@ using Fleck2.Interfaces;
 using Newtonsoft.Json;
 using System.Speech.Synthesis;
 
+
+using System.Text;
+using System.Text.RegularExpressions;
+namespace curl
+{
+    public static class Translator
+    {
+        public static string TranslateText(string input, string languagePair)
+        {
+            return TranslateText(input, languagePair, System.Text.Encoding.UTF7);
+        }
+        
+        /// Translate Text using Google Translate The string you want translated 2 letter Language Pair, delimited by "|". en|vi
+        /// e.g. "en|da" language pair means to translate from English to Danish The encoding. Translated to String
+        public static string TranslateText(string input, string languagePair, Encoding encoding)
+        {
+            string result = String.Empty;
+            string url = String.Format("http://www.google.com/translate_t?hl=en&ie=UTF8&text={0}&langpair={1}", input, languagePair);
+            string s = String.Empty;
+            using (WebClient webClient = new WebClient())
+            {
+                webClient.Encoding = encoding;
+                s = webClient.DownloadString(url);
+            }
+            // Match m = Regex.Match(result, @"(?<=<div id=result_box dir=""ltr"">)(.*?)(?=)"); 
+            // if (m.Success) result = m.Value;
+            // id=result_box
+            int p = s.IndexOf("id=result_box");
+            if (p > 0)
+                s = s.Substring(p, s.Length - p);
+            p = s.IndexOf("</span>");
+            if (p > 0) {
+                s = s.Substring(0, p);
+                p = s.IndexOf(@"'"">");
+                if (p > 0)
+                    result = s.Substring(p + 3, s.Length - (p + 3));
+            }
+            return result;
+        }
+    }
+}
+
+
 namespace curl
 {
     public class Paragraph
@@ -32,7 +75,7 @@ namespace curl
                 if (id == 0)
                 {
                     type = SENTENCE.TITLE;
-                    html = text.generalHTML(EL.TAG_TITLE, EL.DO_SPEECH_WORD);
+                    html = text.generalHTML(EL.TAG_TITLE, EL.DO_SPEECH_SENTENCE);
                 }
                 else
                 {
@@ -53,6 +96,7 @@ namespace curl
         SINGLE,
         PARAGRAPH,
         HEADING,
+        NOTE,
         CODE,
         LINK,
     }
@@ -68,20 +112,20 @@ namespace curl
         public const string TAG_CODE = "pre";
         public const string TAG_ARTICLE = "div";
         public const string TAG_TITLE = "h2";
-        public const string TAG_PARAGRAPH = "p";                                     // một đoạn gồm nhiều câu ghép nối
-        public const string TAG_SENTENCE = "em";                                     // What is a service worker? => What is a service worker?
-        public const string TAG_SENTENCE_KEY_WORD = "span";                          // What is a service worker? => What service worker
-        public const string TAG_SENTENCE_SUBJECT = "b";                              // words are subject
-        public const string TAG_WORD = "i";                                          // What is a service worker? => <i>What</i> is a <i>service</i> <i>worker</i>
+        public const string TAG_PARAGRAPH = "p";        // một đoạn gồm nhiều câu ghép nối
+        public const string TAG_SENTENCE = "em";       // What is a service worker? => What is a service worker?
+        public const string TAG_SENTENCE_KEY_WORD = "span";     // What is a service worker? => What service worker
+        public const string TAG_SENTENCE_SUBJECT = "b";        // words are subject
+        public const string TAG_WORD = "i";        // What is a service worker? => <i>What</i> is a <i>service</i> <i>worker</i>
 
-        public const string ATTR_SPEECH_WORD_VOCABULARY = "nv";                      // word is vocabulary new: tu moi
-        public const string ATTR_SPEECH_WORD_QUESTION_WH = "wh";                     // what, where, which, how: many, much ...
-        public const string ATTR_SPEECH_WORD_VERB_TOBE = "vb";                       // word is verb tobe: is, am, are, be, will, was, were
-        public const string ATTR_SPEECH_WORD_VERB_MODAL = "vm";                      // word is modal verb: Động từ khuyết thiếu
-        public const string ATTR_SPEECH_WORD_VERB_INFINITIVE = "vi";                 // word is verb infinitive        
-        public const string ATTR_SPEECH_WORD_IDOM = "id";                            // word is idom or struct grammar   
-        public const string ATTR_SPEECH_WORD_GRAMMAR = "gm";                         // word is idom or struct grammar
-        public const string ATTR_SPEECH_WORD_SPECIALIZE = "sp";                      // word is specialize
+        public const string ATTR_SPEECH_WORD_VOCABULARY = "nv";       // word is vocabulary new: tu moi
+        public const string ATTR_SPEECH_WORD_QUESTION_WH = "wh";       // what, where, which, how: many, much ...
+        public const string ATTR_SPEECH_WORD_VERB_TOBE = "vb";       // word is verb tobe: is, am, are, be, will, was, were
+        public const string ATTR_SPEECH_WORD_VERB_MODAL = "vm";       // word is modal verb: Động từ khuyết thiếu
+        public const string ATTR_SPEECH_WORD_VERB_INFINITIVE = "vi";       // word is verb infinitive        
+        public const string ATTR_SPEECH_WORD_IDOM = "id";       // word is idom or struct grammar   
+        public const string ATTR_SPEECH_WORD_GRAMMAR = "gm";       // word is idom or struct grammar
+        public const string ATTR_SPEECH_WORD_SPECIALIZE = "sp";       // word is specialize
 
         /*
         WHO   (ai)
@@ -105,16 +149,16 @@ namespace curl
 
         };
 
-        public readonly Dictionary<string, string> IDOM = new Dictionary<string, string>() {
+        public readonly Dictionary<string, string> GRAMMAR = new Dictionary<string, string>() {
             { "ought not to have","ought not to have + Vpp: diễn tả một sự không tán đồng về một hành động đã làm trong quá khứ, không phải làm điều gì đó"}
             ,{ "able to","was/were able to: Nếu câu nói hàm ý một sự thành công trong việc thực hiện hành động (succeeded in doing)" }
 
         };
-        public readonly Dictionary<string, string> GRAMMAR = new Dictionary<string, string>() { };
+        public readonly Dictionary<string, string> IDOM = new Dictionary<string, string>() { };
 
         #region [ WORDS_VERBS_IRREGULAR ]
 
-        public const string WORDS_VERBS_IRREGULAR = 
+        public const string WORDS_VERBS_IRREGULAR =
                                                     " abide ; abode , abided ; abode , abided ; " +                    //-"lưu trú ,  lưu lại"
                                                     " arise ; arose ; arisen ; " +                                     //-phát sinh
                                                     " awake ; awoke ; awoken ; " +                                     //-"đánh thức ,  thức"
@@ -337,9 +381,9 @@ namespace curl
                                                     " withstand ; withstood ; withstood ; " +                          //-cầm cự
                                                     " work ; worked ;  worked ; " +                                    //-"rèn (sắt) ,  nhào nặng đất"
                                                     " wring ; wrung ; wrung ; " +                                      //-vặn  ;  siết chặt
-                                                    " write ; wrote ; written ; " ;                                    //-viết
+                                                    " write ; wrote ; written ; ";                                    //-viết
         #endregion
-        
+
     }
 
     public static class EnglishExt

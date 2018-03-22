@@ -13,6 +13,7 @@ using Fleck2;
 using Fleck2.Interfaces;
 using Newtonsoft.Json;
 using System.Speech.Synthesis;
+using System.Text.RegularExpressions;
 
 namespace curl
 {
@@ -54,14 +55,18 @@ namespace curl
             string[] a = File.ReadAllLines("demo.txt");
 
             List<Paragraph> ls = new List<Paragraph>() { };
-            string s = string.Empty;
+            string si = string.Empty;
             for (int i = 1; i < a.Length; i++)
             {
 
             }
 
-
+            string ss = Translator.TranslateText("hello", "en|vi");
+            
         }
+
+
+
         #region
 
         // Initialize a new instance of the SpeechSynthesizer.
