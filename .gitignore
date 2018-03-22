@@ -10,3 +10,11 @@ bin/Debug/curl.vshost.exe
 bin/Debug/curl.pdb
 bin/Debug/curl.exe
 bin/Debug/curl.vshost.exe.manifest
+obj/Debug/curl.csproj.CoreCompileInputs.cache
+bin/Debug/test.db
+.vs/curl/v15/Server/sqlite3/storage.ide
+.vs/curl/v15/Server/sqlite3/db.lock
+.vs/curl/v15/.suo
+.gitattributes
+.vs/curl/v15/Server/sqlite3/storage.ide-shm
+.vs/curl/v15/Server/sqlite3/storage.ide-wal

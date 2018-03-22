@@ -54,6 +54,7 @@
     <Compile Include="DB\Message.cs" />
     <Compile Include="DB\QueryBuilder.cs" />
     <Compile Include="DB\QueryItem.cs" />
+    <Compile Include="el.cs" />
     <Compile Include="Fleck2\FleckLog.cs" />
     <Compile Include="Fleck2\FrameType.cs" />
     <Compile Include="Fleck2\HandlerFactory.cs" />

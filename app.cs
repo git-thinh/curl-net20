@@ -16,6 +16,8 @@ using System.Speech.Synthesis;
 
 namespace curl
 {
+
+
     [PermissionSet(SecurityAction.LinkDemand, Name = "Everything"), PermissionSet(SecurityAction.InheritanceDemand, Name = "FullTrust")]
     public class app
     {
@@ -241,62 +243,6 @@ namespace curl
             app.test();
         }
     }
-    public enum SENTENCE
-    {
-        TITLE,
-        SINGLE,
-        PARAGRAPH,
-        HEADING,
-        CODE,
-        LINK,
-    }
-    public class el
-    {
-        public const string do_speech_word = "sp_w";
-        public const string do_speech_paragraph = "sp_p";
-        public const string do_speech_all = "sp_all";
-    }
 
-    public class Paragraph
-    {
-        public int id { set; get; }
-        public SENTENCE type { set; get; }
-        public string text { set; get; }
-        public string html { set; get; }
-
-        public Paragraph(int id, string s)
-        {
-            if (!string.IsNullOrEmpty(s) && s.Trim().Length > 0) { }
-            else
-            {
-                text = s;
-                if (id == 0)
-                {
-                    type = SENTENCE.TITLE;
-                    html = text.generalHTML("h2", el.do_speech_word);
-                }
-                else {
-
-                }
-            }
-        }
-
-        public override string ToString()
-        {
-            return string.Format("{0}-{1}: {2}", id, type.ToString(), text);
-        }
-    }
-    public static class EnglishExt
-    {
-        public static string generalHTML(this string text, string tagName, string func = null, Dictionary<string, string> attributes = null)
-        {
-            string attr = string.Empty, f = string.Empty;
-            if (attributes != null && attributes.Count > 0)
-                attr = " " + string.Join(" ", attributes.Select(kv => string.Format(@"""{0}""=""{1}""", kv.Key, kv.Value)).ToArray()) + " ";
-            if (!string.IsNullOrEmpty(func))
-                f = string.Format(@" do={0} ", func);
-            return string.Format("<{0}{1}{2}>{3}</{0}>", tagName, f, attr, text);
-        }
-    }
 }
 

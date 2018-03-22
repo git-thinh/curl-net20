@@ -6,6 +6,8 @@ What is a service worker?
 
 A service worker is a type of web worker. It's essentially a JavaScript file that runs separately from the main browser thread, intercepting network requests, caching or retrieving resources from the cache, and delivering push messages.
 
+You ought not to have spent all that money on such a thing. I finished my work early and so was able to go to the pub with my friends.
+
 Because workers run separately from the main thread, service workers are independent of the application they are associated with. This has several consequences:
 
 Because the service worker is not blocking (it's designed to be fully asynchronous) synchronous XHR and localStorage cannot be used in a service worker.
