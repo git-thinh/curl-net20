@@ -21,13 +21,26 @@ namespace curl
 {
     public static class Translator
     {
+        /// <summary>
+        /// languagePair are en|vi or en|ja
+        /// </summary>
+        /// <param name="input"></param>
+        /// <param name="languagePair"></param>
+        /// <returns></returns>
         public static string TranslateText(string input, string languagePair)
         {
             return TranslateText(input, languagePair, System.Text.Encoding.UTF7);
         }
-        
-        /// Translate Text using Google Translate The string you want translated 2 letter Language Pair, delimited by "|". en|vi
-        /// e.g. "en|da" language pair means to translate from English to Danish The encoding. Translated to String
+
+        /// <summary>
+        /// Translate Text using Google Translate The string you want translated 2 letter Language Pair, 
+        /// delimited by "|". en|vi e.g. "en|da" language pair means to translate from English to Danish The encoding. 
+        /// Translated to String
+        /// </summary>
+        /// <param name="input"></param>
+        /// <param name="languagePair">en|vi or en|ja</param>
+        /// <param name="encoding"></param>
+        /// <returns></returns>
         public static string TranslateText(string input, string languagePair, Encoding encoding)
         {
             string result = String.Empty;
