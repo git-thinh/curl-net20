@@ -23,11 +23,10 @@ namespace curl
         public const string TAG_HEADING                              = "h3";
         public const string TAG_LINK                                 = "a";
         public const string TAG_NOTE                                 = "span";
-        public const string TAG_PARAGRAPH                            = "p";        // một đoạn gồm nhiều câu ghép nối
-        public const string TAG_SENTENCE                             = "b";        // What is a service worker? => What is a service worker?
-                                                                                   //public const string TAG_SENTENCE_KEY_WORD                  = "label";     // What is a service worker? => What service worker
-                                                                                   //public const string TAG_SENTENCE_SUBJECT                   = "em";        // words are subject
-        public const string TAG_WORD                                 = "i";        // What is a service worker? => <i>What</i> is a <i>service</i> <i>worker</i>
+        public const string TAG_PARAGRAPH                            = "p";        
+        public const string TAG_SENTENCE                             = "b";         
+        public const string TAG_CLAUSE                               = "em";         
+        public const string TAG_WORD                                 = "i";         
 
         public const string ATTR_SPEECH_WORD_VOCABULARY              = "nv";       // word is vocabulary new: tu moi
         public const string ATTR_SPEECH_WORD_QUESTION_WH             = "wh";       // what, where, which, how: many, much ...

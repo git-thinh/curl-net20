@@ -63,6 +63,7 @@ namespace curl
                 si = a[i];
                 if (si == EL._TAG_CODE_CHAR_BEGIN || _isCode)
                 {
+                    #region [ PRE - CODE ]
                     if (si != EL._TAG_CODE_CHAR_BEGIN) _id = i;
 
                     _isCode = true;
@@ -72,44 +73,57 @@ namespace curl
                     if (i == a.Length - 1 || si == EL._TAG_CODE_CHAR_END)
                     {
                         _isCode = false;
-                        p = new Paragraph() { id = _id, text = _code, type = SENTENCE.CODE, html = string.Format("<{0}>{1}</{0}>",EL.TAG_CODE, _code) };
+                        p = new Paragraph() { id = _id, text = _code, type = SENTENCE.CODE, html = string.Format("<{0}>{1}</{0}>", EL.TAG_CODE, _code) };
                         ls.Add(p);
                     }
+                    #endregion
                 }
                 else
                 {
-                    if (si[0] == '#')
+                    switch (si[0])
                     {
-                        si = si.Substring(1).Trim();
-                        if (_isLI == false)
-                        {
-                            _id = i;
-                            _isLI = true;
-                            _ul = "<ul><li>" + si + "</li>";
-                        }
-                        else
-                            _ul += "<li>" + si + "</li>";
-
-                        if (i == a.Length - 1)
-                        {
-                            _ul += "</ul>";
-                            _isLI = false;
-                            p = new Paragraph() { id = _id, text = _ul, type = SENTENCE.UL_LI, html = _ul };
+                        case '*':
+                            #region [ HEADING ]
+                            si = si.Substring(1).Trim();
+                            p = new Paragraph() { id = i, type = SENTENCE.HEADING, text = si, html = string.Format("<{0}>{1}</{0}>", EL.TAG_HEADING, si.generalHtmlWords()) };
                             ls.Add(p);
-                        }
-                    }
-                    else
-                    {
-                        if (_isLI)
-                        {
-                            _ul += "</ul>";
-                            _isLI = false;
-                            p = new Paragraph() { id = _id, text = _ul, type = SENTENCE.UL_LI, html = _ul };
-                            ls.Add(p);
-                        }
+                            break;
+                            #endregion
+                        case '#':
+                            #region [ UL_LI ]
+                            si = si.Substring(1).Trim();
+                            if (_isLI == false)
+                            {
+                                _id = i;
+                                _isLI = true;
+                                _ul = "<ul><li>" + si.generalHtmlWords() + "</li>";
+                            }
+                            else
+                                _ul += "<li>" + si.generalHtmlWords() + "</li>";
 
-                        p = new Paragraph(i, si);
-                        ls.Add(p);
+                            if (i == a.Length - 1)
+                            {
+                                _ul += "</ul>";
+                                _isLI = false;
+                                p = new Paragraph() { id = _id, text = _ul, type = SENTENCE.UL_LI, html = _ul };
+                                ls.Add(p);
+                            }
+                            break;
+                            #endregion
+                        default:
+                            #region [ UL_LI ]
+                            if (_isLI)
+                            {
+                                _ul += "</ul>";
+                                _isLI = false;
+                                p = new Paragraph() { id = _id, text = _ul, type = SENTENCE.UL_LI, html = _ul };
+                                ls.Add(p);
+                            }
+                            #endregion
+
+                            p = new Paragraph(i, si);
+                            ls.Add(p);
+                            break;
                     }
                 }
             }
