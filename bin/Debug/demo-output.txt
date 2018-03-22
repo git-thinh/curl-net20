@@ -1,0 +1,111 @@
+<article><h2>Introduction to Service Worker</h2>
+<a>https://developers.google.com/web/ilt/pwa/introduction-to-service-worker</a>
+<h3>What is a service worker?</h3>
+<p><b><i>A service worker is a type </i>of<i> web worker</i></b>.<b><i> It's essentially a JavaScript file </i>that<i> runs separately </i>from<i> the main browser thread</i>,<i> intercepting network requests</i>,<i> caching or retrieving resources </i>from<i> the cache</i>,<i> and delivering push messages</i></b>.</p>
+<p><b><i>You ought not to have spent all </i>that<i> money on such a thing</i></b>.<b><i> I finished my work early and so was able to go to the pub with my friends</i></b>.</p>
+<p><b><i>Because workers run separately </i>from<i> the main thread</i>,<i> service workers are independent </i>of<i> the application they are associated with</i></b><b><i> This has several consequences</i>:</b></p>
+<ul><li>Because the service worker is not blocking (it's designed to be fully asynchronous) synchronous XHR and localStorage cannot be used in a service worker.</li><li>The service worker can receive push messages from a server when the app is not active. This lets your app show push notifications to the user, even when it is not open in the browser.</li></ul>
+<span>Note: Whether notifications are received when the browser itself is not running depends on how the browser is integrated with the OS. For instance on desktop OS's, Chrome and Firefox only receive notifications when the browser is running. However, Android is designed to wake up any browser when a push message is received and will always receive push messages regardless of browser state. See the FAQ in Matt Gaunt's Web Push Book for more information.</span>
+<p><b><i>The service worker can't access the DOM directly</i></b>.<b><i> To communicate with the page</i>,<i> the service worker uses the postMessage</i>()<i> method to send data and a "message" event listener to receive data</i></b>.</p>
+<h3>Things to note about Service Worker:</h3>
+<p><b><i>A service worker is a programmable network proxy </i>that<i> lets you control how network requests </i>from<i> your page are handled</i></b>.</p>
+<p><b><i>Service workers only run over HTTPS</i></b>.<b><i> Because service workers can intercept network requests and modify responses</i>,<i> "man-in-the-middle" attacks could be very bad</i></b>.</p>
+<span>Note: Services like Letsencrypt let you procure SSL certificates for free to install on your server.</span>
+<p><b><i>The service worker becomes idle </i>when<i> not in use and restarts </i>when<i> it's next needed</i></b>.<b><i> You cannot rely on a global state persisting between events</i></b>.<b><i> If there is information </i>that<i> you need to persist and reuse across restarts</i>,<i> you can use IndexedDB databases</i></b>.</p>
+<p><b><i>Service workers make extensive use </i>of<i> promises</i>, so if you're new to<i> promises</i>,<i> then you should stop reading this and check out Promises</i>,<i> an introduction</i></b>.</p>
+<h3>What can service workers do?</h3>
+<p><b><i>Service workers enable applications to control network requests</i>,<i> cache those requests to improve performance</i>,<i> and provide </i>of<i>fline access to cached content</i></b>.</p>
+<p><b><i>Service workers depend on two APIs to make an app work </i>of<i>fline</i>:<i> Fetch </i>(<i>a standard way to retrieve content </i>from<i> the network</i>)<i> and Cache </i>(<i>a persistent content storage for application data</i>)</b>.<b><i> This cache is persistent and independent </i>from<i> the browser cache or network status</i></b>.</p>
+<p><b><i>Improve performance </i>of<i> your application/site</i></b>.</p>
+<p><b><i>Caching resources will make content load faster under most network conditions</i></b>.<b><i> See Caching files with the service worker and The Offline Cookbook for a full list </i>of<i> caching strategies</i></b>.</p>
+<p><b><i>Make your app "</i>of<i>fline-first"</i></b>.</p>
+<p><b><i>Using the Fetch API inside a service worker</i>,<i> we can intercept network requests and then modify the response with content other than the requested resource</i></b>.<b><i> We can use this technique to serve resources </i>from<i> the cache </i>when<i> the user is </i>of<i>fline</i></b>.<b><i> See Caching files with the service worker to get hands-on experience with this technique</i></b>.</p>
+<h3>Act as the base for advanced features</h3>
+<p><b><i>Service workers provide the starting point for features </i>that<i> make web applications work like native apps</i></b><b><i> Some </i>of<i> these features are</i>:</b></p>
+<p><b><i>Notifications API</i>:<i> A way to display and interact with notifications using the operating system's native notification system</i></b>.</p>
+<p><b><i>Push API</i>:<i> An API </i>that<i> enables your app to subscribe to a push service and receive push messages</i></b>.<b><i> Push messages are delivered to a service worker</i>,<i> which can use the information in the message to update the local state or display a notification to the user</i></b>.<b><i> Because service workers run independently </i>of<i> the main app</i>,<i> they can receive and display notifications even </i>when<i> the browser is not running</i></b>.</p>
+<p><b><i>Background Sync API</i>:<i> Lets you defer actions until the user has stable connectivity</i></b>.<b><i> This is useful to ensure </i>that<i> whatever the user wants to send is actually sent</i></b>.<b><i> This API also allows servers to push periodic updates to the app so the app can update </i>when<i> it's next online</i></b>.</p>
+<p><b><i>Channel Messaging API</i>:<i> Lets web workers and service workers communicate with each other and with the host application</i></b>.<b><i> Examples </i>of<i> this API include new content notification and updates </i>that<i> require user interaction</i></b>.</p>
+<h3>Service worker lifecycle</h3>
+<h3>A service worker goes through three steps in its lifecycle:</h3>
+<ul><li>Registration</li><li>Installation</li><li>Activation</li><li>Registration and scope</li></ul>
+<p><b><i>To install a service worker</i>,<i> you need to register it in your main JavaScript code</i></b><b><i> Registration tells the browser where your service worker is located</i>,<i> and to start installing it in the background</i></b><b><i> Let's look at an example</i>:</b></p>
+<pre>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/service-worker.js')
+  .then(function(registration) {
+    console.log('Registration successful, scope is:', registration.scope);
+  })
+  .catch(function(error) {
+    console.log('Service worker registration failed, error:', error);
+  });
+}</pre>
+<p><b><i>This code starts by checking for browser support by examining navigator</i></b>.<b><i>serviceWorker</i></b>.<b><i> The service worker is then registered with navigator</i></b>.<b><i>serviceWorker</i></b>.<b><i>register</i>,<i> which returns a promise </i>that<i> resolves </i>when the service worker has been successfully <i>register</i>ed</b>.<b><i> The scope </i>of<i> the service worker is then logged with registration</i></b>.<b><i>scope</i></b>.</p>
+<p><b><i>The scope </i>of<i> the service worker determines which files the service worker controls</i>,<i> in other words</i>, from<i> which path the service worker will intercept requests</i></b>.<b><i> The default scope is the location </i>of<i> the service worker file</i>,<i> and extends to all directories below</i></b>.<b><i> So if service-worker</i></b>.<b><i>js is located in the root directory</i>,<i> the service worker will control requests </i>from<i> all files at this domain</i></b>.</p>
+<p><b><i>You can also set an arbitrary scope by passing in an additional parameter </i>when<i> registering</i></b><b><i> For example</i>:</b></p>
+<pre>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/service-worker.js')
+  .then(function(registration) {
+    console.log('Registration successful, scope is:', registration.scope);
+  })
+  .catch(function(error) {
+    console.log('Service worker registration failed, error:', error);
+  });
+}
+navigator.serviceWorker.register('/service-worker.js', {
+  scope: '/app/'
+});</pre>
+<p><b><i>In this case we are setting the scope </i>of<i> the service worker to /app/</i>,<i> which means the service worker will control requests </i>from<i> pages like /app/</i>,<i> /app/lower/ and /app/lower/lower</i>,<i> but not </i>from<i> pages like /app or /</i>,<i> which are higher</i></b>.</p>
+<p><b><i>If the service worker is already installed</i>,<i> navigator</i></b>.<b><i>serviceWorker</i></b>.<b><i>register returns the registration object </i>of<i> the currently active service worker</i></b>.</p>
+<h3>Installation</h3>
+<p><b><i>Once the the browser registers a service worker</i>,<i> installation can be attempted</i></b>.<b><i> This occurs if the service worker is considered to be new by the browser</i>,<i> either because the site currently doesn't have a registered service worker</i>,<i> or because there is a byte difference between the new service worker and the previously installed one</i></b>.</p>
+<p><b><i>A service worker installation triggers an install event in the installing service worker</i></b><b><i> We can include an install event listener in the service worker to perform some task </i>when<i> the service worker installs</i></b><b><i> For instance</i>,<i> during the install</i>,<i> service workers can precache parts </i>of<i> a web app so </i>that<i> it loads instantly the next time a user opens it </i>(<i>see caching the application shell</i>)</b><b><i> So</i>,<i> after </i>that<i> first load</i>,<i> you're going to benefit </i>from<i> instant repeat loads and your time to interactivity is going to be even better in those cases</i></b><b><i> An example </i>of<i> an installation event listener looks like this</i>:</b></p>
+<pre>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/service-worker.js')
+  .then(function(registration) {
+    console.log('Registration successful, scope is:', registration.scope);
+  })
+  .catch(function(error) {
+    console.log('Service worker registration failed, error:', error);
+  });
+}
+navigator.serviceWorker.register('/service-worker.js', {
+  scope: '/app/'
+});
+// Listen for install event, set callback
+self.addEventListener('install', function(event) {
+    // Perform some task
+});</pre>
+<h3>Activation</h3>
+<p><b><i>Once a service worker has successfully installed</i>,<i> it transitions into the activation stage</i></b>.<b><i> If there are any open pages controlled by the previous service worker</i>,<i> the new service worker enters a waiting state</i></b>.<b><i> The new service worker only activates </i>when<i> there are no longer any pages loaded </i>that<i> are still using the old service worker</i></b>.<b><i> This ensures </i>that<i> only one version </i>of<i> the service worker is running at any given time</i></b>.</p>
+<span>Note: Simply refreshing the page is not sufficient to transfer control to a new service worker, because the new page will be requested before the the current page is unloaded, and there won't be a time when the old service worker is not in use.</span>
+<p><b><i>When the new service worker activates</i>,<i> an activate event is triggered in the activating service worker</i></b>.<b><i> This event listener is a good place to clean up outdated caches </i>(<i>see the Offline Cookbook for an example</i>)</b>.</p>
+<pre>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/service-worker.js')
+  .then(function(registration) {
+    console.log('Registration successful, scope is:', registration.scope);
+  })
+  .catch(function(error) {
+    console.log('Service worker registration failed, error:', error);
+  });
+}
+navigator.serviceWorker.register('/service-worker.js', {
+  scope: '/app/'
+});
+// Listen for install event, set callback
+self.addEventListener('install', function(event) {
+    // Perform some task
+});
+self.addEventListener('activate', function(event) {
+  // Perform some task
+});</pre>
+<p><b><i>Once activated</i>,<i> the service worker controls all pages </i>that<i> load within its scope</i>,<i> and starts listening for events </i>from<i> those pages</i></b>.<b><i> However</i>,<i> pages in your app </i>that<i> were loaded before the service worker activation will not be under service worker control</i></b>.<b><i> The new service worker will only take over </i>when<i> you close and reopen your app</i>,<i> or if the service worker calls clients</i></b>.<b><i>claim</i>()</b>.<b><i> Until then</i>,<i> requests </i>from<i> this page will not be intercepted by the new service worker</i></b>.<b><i> This is intentional as a way to ensure consistency in your site</i></b>.</p>
+<h3>Service worker events</h3>
+<p><b><i>Service workers are event driven</i></b>.<b><i> Both the installation and activation processes trigger corresponding install and activate events to which the service workers can respond</i></b>.<b><i> There are also message events</i>,<i> where the service worker can receive information </i>from<i> other scripts</i>,<i> and functional events such as fetch</i>,<i> push</i>,<i> and sync</i></b>.</p>
+<p><b><i>To examine service workers</i>,<i> navigate to the Service Worker section in your browser's developer tools</i></b>.<b><i> The process is different in each browser </i>that<i> supports service workers</i></b>.<b><i> For information about using your browser's developer tools to check the status </i>of<i> service workers</i>,<i> see Tools for PWA Developers</i></b>.</p>
+<h3>Further reading</h3>
+<h3>A more detailed introduction to The Service Worker Lifecycle</h3>
+<ul><li>More on Service Worker Registration</li><li>Create your own service worker (lab)</li><li>Take a blog site offline (lab)</li><li>Cache files with Service Worker (lab)</li></ul></article>

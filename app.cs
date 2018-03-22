@@ -116,9 +116,10 @@ namespace curl
             string htm = string.Join(Environment.NewLine, ls.Select(x => x.html).ToArray());
             htm = string.Format("<{0}>{1}</{0}>", EL.TAG_ARTICLE, htm);
 
-            string ss = Translator.TranslateText("hello", "en|vi");
-            Console.WriteLine("{0} = {1}", "hello", ss);
-            Console.ReadLine();
+            //string ss = Translator.TranslateText("hello", "en|vi");
+            //Console.WriteLine("{0} = {1}", "hello", ss);
+            //Console.ReadLine();
+            File.WriteAllText("demo-output.txt", htm);
         }
 
 

@@ -27,7 +27,7 @@ namespace curl
                 else
                 {
                     id = _id;
-                    string si = _s.ToLower();
+                    string si = _s.ToLower().Trim();
                     if (si.IndexOf("http") == 0)
                     {
                         type = SENTENCE.LINK;
@@ -40,32 +40,33 @@ namespace curl
                     }
                     else
                     {
-                        bool _isParagraph = false;
-                        string _sen = string.Empty;
+                        bool _isParagraph = true;
                         string[] aSen = _s.Split(EL._SPLIT_PARAGRAPH_TO_SENTENCE, StringSplitOptions.None).Where(x => x.Trim() != string.Empty).ToArray();
                         if (aSen.Length == 1)
                         {
                             int len = _s.Split(EL._SPLIT_PARAGRAPH_TO_CLAUSE, StringSplitOptions.None).Where(x => x.Trim() != string.Empty).Count();
                             if (len == 1)
                             {
+                                _isParagraph = false;
                                 type = SENTENCE.HEADING;
                                 html = text.generalHTML(type);
                             }
-                            else
-                                _isParagraph = true;
                         }
                         if(_isParagraph)
                         {
                             type = SENTENCE.PARAGRAPH;
+                            string _sen = string.Empty, hi = string.Empty;
+
                             foreach (string se in aSen)
                             {
                                 string[] ap = se.Split(EL._SPLIT_PARAGRAPH_TO_CLAUSE, StringSplitOptions.None).Where(x => x.Trim() != string.Empty).ToArray();
-                                string hi = se;
+                                hi = se;
                                 for (int ki = 0; ki < ap.Length; ki++)
-                                {
                                     hi = hi.Replace(ap[ki], string.Format("<{0}>{1}</{0}>", EL.TAG_WORD, ap[ki]));
-                                }
-                                _sen += string.Format("<{0}{1}{2}>{3}</{0}>", EL.TAG_SENTENCE, string.Empty, string.Empty, hi) + ".";
+
+                                _sen += string.Format("<{0}{1}{2}>{3}</{0}>", EL.TAG_SENTENCE, string.Empty, string.Empty, hi);
+                                if (si[si.Length - 1] != ':')
+                                    _sen += ".";
                             }
                             html = string.Format("<{0}{1}{2}>{3}</{0}>", EL.TAG_PARAGRAPH, string.Empty, string.Empty, _sen);
                         }
@@ -93,6 +94,46 @@ namespace curl
 
     public static class EnglishExt
     {
+        public static string generalHtmlParagraph(this string text)
+        {
+            if (string.IsNullOrEmpty(text)) return string.Empty;
+
+            char _charEnd = text[text.Length - 1];
+            SENTENCE type;
+            string html = string.Empty;
+            bool _isParagraph = true;
+            string[] aSen = text.Split(EL._SPLIT_PARAGRAPH_TO_SENTENCE, StringSplitOptions.None).Where(x => x.Trim() != string.Empty).ToArray();
+            if (aSen.Length == 1)
+            {
+                int len = text.Split(EL._SPLIT_PARAGRAPH_TO_CLAUSE, StringSplitOptions.None).Where(x => x.Trim() != string.Empty).Count();
+                if (len == 1)
+                {
+                    _isParagraph = false;
+                    type = SENTENCE.HEADING;
+                    html = text.generalHTML(type);
+                }
+            }
+            if (_isParagraph)
+            {
+                type = SENTENCE.PARAGRAPH;
+                string _sen = string.Empty, hi = string.Empty;
+
+                foreach (string se in aSen)
+                {
+                    string[] ap = se.Split(EL._SPLIT_PARAGRAPH_TO_CLAUSE, StringSplitOptions.None).Where(x => x.Trim() != string.Empty).ToArray();
+                    hi = se;
+                    for (int ki = 0; ki < ap.Length; ki++)
+                        hi = hi.Replace(ap[ki], string.Format("<{0}>{1}</{0}>", EL.TAG_WORD, ap[ki]));
+
+                    _sen += string.Format("<{0}{1}{2}>{3}</{0}>", EL.TAG_SENTENCE, string.Empty, string.Empty, hi);
+                    if (_charEnd != ':')
+                        _sen += ".";
+                }
+                html = string.Format("<{0}{1}{2}>{3}</{0}>", EL.TAG_PARAGRAPH, string.Empty, string.Empty, _sen);
+            }
+            return html;
+        }
+
         public static string generalHTMLAttr(this string text, SENTENCE type, string func = null, string attrClass = null)
         {
             Dictionary<string, string> dic = null;
