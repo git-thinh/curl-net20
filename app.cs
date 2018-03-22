@@ -17,6 +17,14 @@ using System.Text.RegularExpressions;
 
 namespace curl
 {
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            app.Start();
+            //app.test();
+        }
+    }
 
 
     [PermissionSet(SecurityAction.LinkDemand, Name = "Everything"), PermissionSet(SecurityAction.InheritanceDemand, Name = "FullTrust")]
@@ -310,14 +318,6 @@ namespace curl
             dbi.CloseAll();
         }
         #endregion
-    }
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            //app.Start();
-            app.test();
-        }
     }
 
 }
