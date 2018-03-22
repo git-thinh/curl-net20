@@ -1,144 +1,42 @@
-﻿using System;
-using System.Security.Permissions;
-using System.Threading;
-using System.Reflection;
-using System.IO;
-using System.Net.Sockets;
-using System.Net;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Web;
-using LiteDB;
-using Fleck2;
-using Fleck2.Interfaces;
-using Newtonsoft.Json;
-using System.Speech.Synthesis;
-
-
-using System.Text;
-using System.Text.RegularExpressions;
-namespace curl
-{
-    public static class Translator
-    {
-        /// <summary>
-        /// languagePair are en|vi or en|ja
-        /// </summary>
-        /// <param name="input"></param>
-        /// <param name="languagePair"></param>
-        /// <returns></returns>
-        public static string TranslateText(string input, string languagePair)
-        {
-            return TranslateText(input, languagePair, System.Text.Encoding.UTF7);
-        }
-
-        /// <summary>
-        /// Translate Text using Google Translate The string you want translated 2 letter Language Pair, 
-        /// delimited by "|". en|vi e.g. "en|da" language pair means to translate from English to Danish The encoding. 
-        /// Translated to String
-        /// </summary>
-        /// <param name="input"></param>
-        /// <param name="languagePair">en|vi or en|ja</param>
-        /// <param name="encoding"></param>
-        /// <returns></returns>
-        public static string TranslateText(string input, string languagePair, Encoding encoding)
-        {
-            string result = String.Empty;
-            string url = String.Format("http://www.google.com/translate_t?hl=en&ie=UTF8&text={0}&langpair={1}", input, languagePair);
-            string s = String.Empty;
-            using (WebClient webClient = new WebClient())
-            {
-                webClient.Encoding = encoding;
-                s = webClient.DownloadString(url);
-            }
-            // Match m = Regex.Match(result, @"(?<=<div id=result_box dir=""ltr"">)(.*?)(?=)"); 
-            // if (m.Success) result = m.Value;
-            // id=result_box
-            int p = s.IndexOf("id=result_box");
-            if (p > 0)
-                s = s.Substring(p, s.Length - p);
-            p = s.IndexOf("</span>");
-            if (p > 0) {
-                s = s.Substring(0, p);
-                p = s.IndexOf(@"'"">");
-                if (p > 0)
-                    result = s.Substring(p + 3, s.Length - (p + 3));
-            }
-            return result;
-        }
-    }
-}
-
 
 namespace curl
 {
-    public class Paragraph
-    {
-        public int id { set; get; }
-        public SENTENCE type { set; get; }
-        public string text { set; get; }
-        public string html { set; get; }
-
-        public Paragraph(int id, string s)
-        {
-            if (!string.IsNullOrEmpty(s) && s.Trim().Length > 0) { }
-            else
-            {
-                text = s;
-                if (id == 0)
-                {
-                    type = SENTENCE.TITLE;
-                    html = text.generalHTML(EL.TAG_TITLE, EL.DO_SPEECH_SENTENCE);
-                }
-                else
-                {
-
-                }
-            }
-        }
-
-        public override string ToString()
-        {
-            return string.Format("{0}-{1}: {2}", id, type.ToString(), text);
-        }
-    }
-
-    public enum SENTENCE
-    {
-        TITLE,
-        SINGLE,
-        PARAGRAPH,
-        HEADING,
-        NOTE,
-        CODE,
-        LINK,
-    }
-
     public class EL
     {
-        public const string DO_SPEECH_ALL = "__s_0";
-        public const string DO_SPEECH_WORD = "__s_1";
-        public const string DO_SPEECH_PARAGRAPH = "__s_2";
-        public const string DO_SPEECH_SENTENCE = "__s_3";
-        public const string DO_SPEECH_SENTENCE_KEY_WORD = "__s_4";
+        public static readonly string[] _SPLIT_PARAGRAPH_TO_SENTENCE = { "." };
+        public static readonly string[] _SPLIT_PARAGRAPH_TO_CLAUSE = { ":", ",", "(", ")", "when", "that", "from", "of" };
 
-        public const string TAG_CODE = "pre";
-        public const string TAG_ARTICLE = "div";
-        public const string TAG_TITLE = "h2";
-        public const string TAG_PARAGRAPH = "p";        // một đoạn gồm nhiều câu ghép nối
-        public const string TAG_SENTENCE = "em";       // What is a service worker? => What is a service worker?
-        public const string TAG_SENTENCE_KEY_WORD = "span";     // What is a service worker? => What service worker
-        public const string TAG_SENTENCE_SUBJECT = "b";        // words are subject
-        public const string TAG_WORD = "i";        // What is a service worker? => <i>What</i> is a <i>service</i> <i>worker</i>
+        public const string _TAG_CODE_CHAR_BEGIN                     = "//#";
+        public const string _TAG_CODE_CHAR_END                       = "//.";
 
-        public const string ATTR_SPEECH_WORD_VOCABULARY = "nv";       // word is vocabulary new: tu moi
-        public const string ATTR_SPEECH_WORD_QUESTION_WH = "wh";       // what, where, which, how: many, much ...
-        public const string ATTR_SPEECH_WORD_VERB_TOBE = "vb";       // word is verb tobe: is, am, are, be, will, was, were
-        public const string ATTR_SPEECH_WORD_VERB_MODAL = "vm";       // word is modal verb: Động từ khuyết thiếu
-        public const string ATTR_SPEECH_WORD_VERB_INFINITIVE = "vi";       // word is verb infinitive        
-        public const string ATTR_SPEECH_WORD_IDOM = "id";       // word is idom or struct grammar   
-        public const string ATTR_SPEECH_WORD_GRAMMAR = "gm";       // word is idom or struct grammar
-        public const string ATTR_SPEECH_WORD_SPECIALIZE = "sp";       // word is specialize
+        public const string DO_SPEECH_ALL                            = "__s_0";
+        public const string DO_SPEECH_WORD                           = "__s_1";
+        public const string DO_SPEECH_PARAGRAPH                      = "__s_2";
+        public const string DO_SPEECH_SENTENCE                       = "__s_3";
+        public const string DO_SPEECH_SENTENCE_KEY_WORD              = "__s_4";
+
+        public const string TAG_CODE                                 = "pre";
+        public const string TAG_ARTICLE                              = "article";
+        public const string TAG_TITLE                                = "h2";
+        public const string TAG_HEADING                              = "h3";
+        public const string TAG_LINK                                 = "a";
+        public const string TAG_NOTE                                 = "span";
+        public const string TAG_PARAGRAPH                            = "p";        // một đoạn gồm nhiều câu ghép nối
+        public const string TAG_SENTENCE                             = "b";        // What is a service worker? => What is a service worker?
+                                                                                   //public const string TAG_SENTENCE_KEY_WORD                  = "label";     // What is a service worker? => What service worker
+                                                                                   //public const string TAG_SENTENCE_SUBJECT                   = "em";        // words are subject
+        public const string TAG_WORD                                 = "i";        // What is a service worker? => <i>What</i> is a <i>service</i> <i>worker</i>
+
+        public const string ATTR_SPEECH_WORD_VOCABULARY              = "nv";       // word is vocabulary new: tu moi
+        public const string ATTR_SPEECH_WORD_QUESTION_WH             = "wh";       // what, where, which, how: many, much ...
+        public const string ATTR_SPEECH_WORD_VERB_TOBE               = "vb";       // word is verb tobe: is, am, are, be, will, was, were
+        public const string ATTR_SPEECH_WORD_VERB_MODAL              = "vm";       // word is modal verb: Động từ khuyết thiếu
+        public const string ATTR_SPEECH_WORD_VERB_INFINITIVE         = "vi";       // word is verb infinitive        
+        public const string ATTR_SPEECH_WORD_IDOM                    = "id";       // word is idom or struct grammar   
+        public const string ATTR_SPEECH_WORD_GRAMMAR                 = "gm";       // word is idom or struct grammar
+        public const string ATTR_SPEECH_WORD_SPECIALIZE              = "sp";       // word is specialize
 
         /*
         WHO   (ai)
@@ -159,7 +57,6 @@ namespace curl
 
         public readonly Dictionary<string, string> DEFINE = new Dictionary<string, string>() {
             { "bare-infinitive","động từ nguyên thể không “to” "}
-
         };
 
         public readonly Dictionary<string, string> GRAMMAR = new Dictionary<string, string>() {
@@ -397,18 +294,5 @@ namespace curl
                                                     " write ; wrote ; written ; ";                                    //-viết
         #endregion
 
-    }
-
-    public static class EnglishExt
-    {
-        public static string generalHTML(this string text, string tagName, string func = null, Dictionary<string, string> attributes = null)
-        {
-            string attr = string.Empty, f = string.Empty;
-            if (attributes != null && attributes.Count > 0)
-                attr = " " + string.Join(" ", attributes.Select(kv => string.Format(@"""{0}""=""{1}""", kv.Key, kv.Value)).ToArray()) + " ";
-            if (!string.IsNullOrEmpty(func))
-                f = string.Format(@" do={0} ", func);
-            return string.Format("<{0}{1}{2}>{3}</{0}>", tagName, f, attr, text);
-        }
     }
 }

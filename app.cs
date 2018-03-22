@@ -52,17 +52,73 @@ namespace curl
 
         public static void test()
         {
-            string[] a = File.ReadAllLines("demo.txt");
-
-            List<Paragraph> ls = new List<Paragraph>() { };
-            string si = string.Empty;
+            string[] a = File.ReadAllLines("demo.txt").Where(x => x.Trim() != "").ToArray();
+            Paragraph p;
+            List<Paragraph> ls = new List<Paragraph>() { new Paragraph(0, a[0]) };
+            string si = string.Empty, _code = string.Empty, _ul = string.Empty;
+            bool _isCode = false, _isLI = false;
+            int _id = 0;
             for (int i = 1; i < a.Length; i++)
             {
+                si = a[i];
+                if (si == EL._TAG_CODE_CHAR_BEGIN || _isCode)
+                {
+                    if (si != EL._TAG_CODE_CHAR_BEGIN) _id = i;
 
+                    _isCode = true;
+                    if (si != EL._TAG_CODE_CHAR_BEGIN && si != EL._TAG_CODE_CHAR_END)
+                        _code += Environment.NewLine + si;
+
+                    if (i == a.Length - 1 || si == EL._TAG_CODE_CHAR_END)
+                    {
+                        _isCode = false;
+                        p = new Paragraph() { id = _id, text = _code, type = SENTENCE.CODE, html = string.Format("<{0}>{1}</{0}>",EL.TAG_CODE, _code) };
+                        ls.Add(p);
+                    }
+                }
+                else
+                {
+                    if (si[0] == '#')
+                    {
+                        si = si.Substring(1).Trim();
+                        if (_isLI == false)
+                        {
+                            _id = i;
+                            _isLI = true;
+                            _ul = "<ul><li>" + si + "</li>";
+                        }
+                        else
+                            _ul += "<li>" + si + "</li>";
+
+                        if (i == a.Length - 1)
+                        {
+                            _ul += "</ul>";
+                            _isLI = false;
+                            p = new Paragraph() { id = _id, text = _ul, type = SENTENCE.UL_LI, html = _ul };
+                            ls.Add(p);
+                        }
+                    }
+                    else
+                    {
+                        if (_isLI)
+                        {
+                            _ul += "</ul>";
+                            _isLI = false;
+                            p = new Paragraph() { id = _id, text = _ul, type = SENTENCE.UL_LI, html = _ul };
+                            ls.Add(p);
+                        }
+
+                        p = new Paragraph(i, si);
+                        ls.Add(p);
+                    }
+                }
             }
+            string htm = string.Join(Environment.NewLine, ls.Select(x => x.html).ToArray());
+            htm = string.Format("<{0}>{1}</{0}>", EL.TAG_ARTICLE, htm);
 
             string ss = Translator.TranslateText("hello", "en|vi");
-            
+            Console.WriteLine("{0} = {1}", "hello", ss);
+            Console.ReadLine();
         }
 
 

@@ -46,10 +46,10 @@ Service worker lifecycle
 
 A service worker goes through three steps in its lifecycle:
 
-Registration
-Installation
-Activation
-Registration and scope
+# Registration
+# Installation
+# Activation
+# Registration and scope
 
 To install a service worker, you need to register it in your main JavaScript code. Registration tells the browser where your service worker is located, and to start installing it in the background. Let's look at an example:
 
@@ -118,7 +118,8 @@ To examine service workers, navigate to the Service Worker section in your brows
 Further reading
 
 A more detailed introduction to The Service Worker Lifecycle
-More on Service Worker Registration
-Create your own service worker (lab)
-Take a blog site offline (lab)
-Cache files with Service Worker (lab)
+
+# More on Service Worker Registration
+# Create your own service worker (lab)
+# Take a blog site offline (lab)
+# Cache files with Service Worker (lab)
