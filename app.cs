@@ -13,7 +13,7 @@ using Fleck2;
 using Fleck2.Interfaces;
 using Newtonsoft.Json;
 using System.Speech.Synthesis;
-using System.Text.RegularExpressions;
+using System.Text.RegularExpressions; 
 
 namespace curl
 {
@@ -30,6 +30,8 @@ namespace curl
     [PermissionSet(SecurityAction.LinkDemand, Name = "Everything"), PermissionSet(SecurityAction.InheritanceDemand, Name = "FullTrust")]
     public class app
     {
+        private static IWebSocketConnection _socketCurrent = null;
+
         static app()
         {
             AppDomain.CurrentDomain.AssemblyResolve += (se, ev) =>
@@ -96,7 +98,7 @@ namespace curl
                             p = new Paragraph() { id = i, type = SENTENCE.HEADING, text = si, html = string.Format("<{0}>{1}</{0}>", EL.TAG_HEADING, si.generalHtmlWords()) };
                             ls.Add(p);
                             break;
-                            #endregion
+                        #endregion
                         case '#':
                             #region [ UL_LI ]
                             si = si.Substring(1).Trim();
@@ -117,7 +119,7 @@ namespace curl
                                 ls.Add(p);
                             }
                             break;
-                            #endregion
+                        #endregion
                         default:
                             #region [ UL_LI ]
                             if (_isLI)
@@ -173,22 +175,55 @@ namespace curl
         static void synth_SpeakCompleted(object sender, SpeakCompletedEventArgs e)
         {
             Console.WriteLine("\nThe SpeakAsync operation was cancelled!!");
+            _socketCurrent.Send(string.Format("!{0}", e.Error.Message));
+            _speakState = SynthesizerState.Ready;
+
         }
 
         // When it changes, write the state of the SpeechSynthesizer to the console.
         static void synth_StateChanged(object sender, StateChangedEventArgs e)
         {
-            Console.WriteLine("\nSynthesizer State: {0}    Previous State: {1}\n", e.State, e.PreviousState);
+            _speakState = e.State;
+            //Console.WriteLine("\nSynthesizer State: {0}    Previous State: {1}\n", e.State, e.PreviousState);
+            //_socketCurrent.Send(string.Format("@{0}", e.State));
+            if (e.State == SynthesizerState.Ready)
+            {
+                _speakCounter++;
+                if (_speakCounter == _speakWords.Length - 1) _speakCounter = 0;
+                speechSynthesizer.Speak(_speakWords[_speakCounter]);
+            }
         }
 
         // Write the text being spoken by the SpeechSynthesizer to the console.
         static void synth_SpeakProgress(object sender, SpeakProgressEventArgs e)
         {
+            _socketCurrent.Send(string.Format("#{0}", e.Text));
             //Console.WriteLine(e.Text);
         }
 
+        static string[] _speakWords = new string[] { };
+        static Int16 _speakCounter = 0;
+        static SynthesizerState _speakState = SynthesizerState.Ready;
         public static void Start()
         {
+            #region
+            //new Thread(()=> {
+            //    int timeOut = 100;
+            //    while (true) {
+            //        if (_speakState == SynthesizerState.Ready && _speakWords.Length != 0)
+            //        { 
+            //            speechSynthesizer.Speak(_speakWords[_speakCounter]);
+            //            _speakCounter++;
+            //            if (_speakCounter == _speakWords.Length) {
+            //                _speakCounter = 0;
+            //                timeOut = 3000;
+            //            }
+            //        }
+            //        Thread.Sleep(timeOut);
+            //    }
+            //}).Start();
+            #endregion
+
             #region
             // Configure the audio output. 
             speechSynthesizer.SetOutputToDefaultAudioDevice();
@@ -220,6 +255,8 @@ namespace curl
             {
                 socket.OnMessage = message =>
                 {
+                    Console.WriteLine(message);
+
                     if (message.Length > 0)
                     {
                         switch (message[0])
@@ -228,7 +265,8 @@ namespace curl
                                 try
                                 {
                                     message = message.Substring(1).Trim();
-                                    speechSynthesizer.Speak(message);
+                                    _speakWords = message.ToLower().Split(' ').Where(x => !EL._WORD_SKIP_WHEN_READING.Any(w => w == x)).ToArray();
+                                    speechSynthesizer.Speak(_speakWords[_speakCounter]);
                                 }
                                 catch (Exception ex)
                                 {
@@ -248,10 +286,10 @@ namespace curl
                 };
                 socket.OnOpen = () =>
                 {
-                    Thread thread = new Thread(new ParameterizedThreadStart(DoMethod));
-                    thread.Start(socket);
-
-                    msgProcess.Join(socket);
+                    _socketCurrent = socket;
+                    //Thread thread = new Thread(new ParameterizedThreadStart(DoMethod));
+                    //thread.Start(socket); 
+                    //msgProcess.Join(socket);
                     //socket.Send("ID=" + socket.ConnectionInfo.Id.ToString());
                 };
                 socket.OnClose = () =>

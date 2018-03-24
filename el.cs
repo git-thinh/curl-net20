@@ -5,6 +5,8 @@ namespace curl
 {
     public class EL
     {
+        public static readonly string[] _WORD_SKIP_WHEN_READING = { "is", "are", "was", "were", "the", "to", "and", "of" };
+
         public static readonly string[] _SPLIT_PARAGRAPH_TO_SENTENCE = { "." };
         public static readonly string[] _SPLIT_PARAGRAPH_TO_CLAUSE = { ":", ",", "(", ")", "when", "that", "from", "of" };
 
