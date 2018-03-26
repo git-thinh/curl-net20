@@ -285,11 +285,15 @@ namespace curl
                     }
                 };
                 socket.OnOpen = () =>
-                {
+                { 
                     _socketCurrent = socket;
                     //Thread thread = new Thread(new ParameterizedThreadStart(DoMethod));
                     //thread.Start(socket); 
-                    //msgProcess.Join(socket);
+                    //msgProcess.Join(socket); 
+                    //Thread thread = new Thread(new ParameterizedThreadStart(DoMethod));
+                    //thread.Start(socket);
+
+                    msgProcess.Join(socket); 
                     //socket.Send("ID=" + socket.ConnectionInfo.Id.ToString());
                 };
                 socket.OnClose = () =>
